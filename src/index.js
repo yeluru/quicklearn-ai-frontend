@@ -1,10 +1,10 @@
-import 'bootstrap/dist/css/bootstrap.min.css';  // ✅ MUST be first
+// src/index.js
 import React from 'react';
-import ReactDOM from 'react-dom/client';
-import './index.css';
+import { createRoot } from 'react-dom/client'; // Import createRoot instead of render
+import './output.css'; // Import the generated Tailwind styles
 import App from './App';
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
+const root = createRoot(document.getElementById('root')); // Create a root
 root.render(
   <React.StrictMode>
     <App />
