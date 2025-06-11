@@ -33,6 +33,8 @@ export default function App() {
   const inputRef = useRef(null);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [theme, setTheme] = useState('dark');
+  const [progress, setProgress] = useState(0);
+  const [loadingMessage, setLoadingMessage] = useState('');
 
   useEffect(() => {
     // Removed auto-focus
@@ -45,8 +47,8 @@ export default function App() {
   const copyRenderedContent = async () => {
     const elementId =
       outputTab === 'Notes' ? 'notes-content' :
-      outputTab === 'Quiz' ? 'quiz-content' :
-      'transcript-content';
+        outputTab === 'Quiz' ? 'quiz-content' :
+          'transcript-content';
 
     const el = document.getElementById(elementId);
     if (!el) return;
@@ -81,46 +83,143 @@ export default function App() {
   };
 
   const handleGetTranscript = async () => {
-    setLoading(true);
+    // Reset all states to initial values, except url for Video/Audio
+    setInputTab('Video');
+    setOutputTab('Transcript');
+    if (inputTab === 'Text' || inputTab === 'File') {
+      setUrl('');
+    }
+    setTextInput('');
+    setFile(null);
     setTranscript('');
-    setChatHistory([]);
-    setChatResponse('');
-    setChatInput('');
-    setSuggestedData([]);
     setSummary('');
     setQnaText('');
+    setChatInput('');
+    setChatResponse('');
+    setChatHistory([]);
+    setSuggestedData([]);
+    setTopicTitle('QuickLearn');
+    setCopied(false);
+    setShowDropdown(false);
+    setLoading(true);
+    setLoadingMessage('Extracting transcript...');
+    setProgress(0);
+    setSummaryCompleted(false);
+    setChatLoading(false);
+    setSuggestionsLoading(false);
+
     try {
-      let res;
+      if (inputTab === 'Text') {
+        setTranscript(textInput);
+        setOutputTab('Transcript');
+        setLoading(false);
+        setLoadingMessage('');
+        setProgress(0);
+        return;
+      }
+
+      if (inputTab === 'File') {
+        const formData = new FormData();
+        formData.append('file', file);
+        // Simulate progress for file upload
+        const interval = setInterval(() => {
+          setProgress(prev => {
+            if (prev >= 90) {
+              clearInterval(interval);
+              return prev;
+            }
+            return prev + 10;
+          });
+        }, 300);
+        const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/upload`, formData);
+        clearInterval(interval);
+        if (res?.data?.transcript) {
+          setTranscript(res.data.transcript);
+          setTopicTitle(res.data.title || 'QuickLearn');
+          setOutputTab('Transcript');
+          setProgress(100);
+        } else {
+          alert('No transcript found or failed to extract data.');
+        }
+        setLoading(false);
+        setLoadingMessage('');
+        setProgress(0);
+        return;
+      }
+
+      let endpoint = '/transcript-stream';
+      let normalizedUrl = url;
       if (inputTab === 'Video') {
-        let normalizedUrl = url;
         const matchLive = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/);
         if (matchLive) {
           normalizedUrl = `https://www.youtube.com/watch?v=${matchLive[1]}`;
         }
-        res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/transcript`, { params: { url: normalizedUrl } });
-      } else if (inputTab === 'Audio') {
-        res = await axios.get(`${process.env.REACT_APP_API_BASE_URL}/transcribe-audio`, { params: { url } });
-      } else if (inputTab === 'Text') {
-        setTranscript(textInput);
-        setOutputTab('Transcript');
-        setLoading(false);
-        return;
-      } else if (inputTab === 'File') {
-        const formData = new FormData();
-        formData.append('file', file);
-        res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/upload`, formData);
       }
-      if (res && res.data.transcript) {
-        setTranscript(res.data.transcript);
-        setTopicTitle(res.data.title || 'QuickLearn');
+      const requestBody = JSON.stringify({ url: normalizedUrl });
+
+      const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: requestBody
+      });
+
+      if (!response.ok) {
+        throw new Error(`Server error: ${response.status}`);
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let fullTranscript = '';
+
+      while (!done) {
+        const { value, done: isDone } = await reader.read();
+        if (value) {
+          const chunk = decoder.decode(value);
+          const lines = chunk.split('\n').filter(line => line.trim());
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.replace('data: ', '');
+              try {
+                const data = JSON.parse(jsonStr);
+                if (data.type === 'title') {
+                  setTopicTitle(data.content || 'QuickLearn');
+                } else if (data.type === 'transcript_chunk') {
+                  fullTranscript += data.content + ' ';
+                  setTranscript(fullTranscript.trim());
+                } else if (data.type === 'progress') {
+                  setProgress(prev => Math.min(prev + 10, 90)); // Incremental progress
+                } else if (data.type === 'complete') {
+                  setTranscript(fullTranscript.trim());
+                  setProgress(100);
+                } else if (data.type === 'error') {
+                  throw new Error(data.message || 'Unknown streaming error');
+                }
+              } catch (parseError) {
+                console.warn('Failed to parse chunk as JSON:', parseError);
+                fullTranscript += chunk.replace('data: ', '') + ' ';
+                setTranscript(fullTranscript.trim());
+              }
+            }
+          }
+        }
+        done = isDone;
+      }
+
+      if (fullTranscript.trim()) {
         setOutputTab('Transcript');
       } else {
-        alert('No transcript found or failed to extract data.');
+        alert('No transcript extracted. Please check the URL and try again.');
       }
     } catch (err) {
-      alert('Error fetching transcript. Please check the URL or try again later.');
+      console.error('Transcript streaming error:', err);
+      alert(`Failed to fetch transcript: ${err.message}. Please try again.`);
+    } finally {
+      setLoading(false);
+      setLoadingMessage('');
+      setProgress(0);
     }
-    setLoading(false);
   };
 
   const streamOutput = useCallback(async (type, force = false) => {
@@ -134,6 +233,17 @@ export default function App() {
 
     setter('');
     setLoading(true);
+    setLoadingMessage(type === 'summary' ? 'Preparing summary...' : 'Preparing Quiz...');
+    // Simulate progress
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 90) {
+          clearInterval(interval);
+          return prev;
+        }
+        return prev + 10;
+      });
+    }, 300);
     try {
       const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}${url}`, {
         method: 'POST',
@@ -160,10 +270,14 @@ export default function App() {
         setSummary(content);
         setSummaryCompleted(true);
       }
+      setProgress(100);
     } catch (err) {
       alert(`Error generating ${type}`);
     }
+    clearInterval(interval);
     setLoading(false);
+    setLoadingMessage('');
+    setProgress(0);
     setSummaryCompleted(true);
   }, [transcript, summary, qnaText]);
 
@@ -176,6 +290,7 @@ export default function App() {
     setChatInput('');
     setChatResponse('');
     setChatLoading(true);
+    setShowDropdown(false); // Hide the dropdown after submitting the chat
 
     try {
       const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chat-on-topic`, {
@@ -284,11 +399,10 @@ export default function App() {
                 <button
                   key={tab}
                   onClick={() => setInputTab(tab)}
-                  className={`relative px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ease-in-out ${
-                    inputTab === tab
+                  className={`relative px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ease-in-out ${inputTab === tab
                       ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
                       : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
-                  }`}
+                    }`}
                   aria-label={`Select ${tab} input`}
                 >
                   {tab}
@@ -304,7 +418,10 @@ export default function App() {
                   className={`flex-1 px-5 py-3 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'} rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300`}
                   placeholder={`Paste a ${inputTab} URL here...`}
                   value={url}
-                  onChange={e => setUrl(e.target.value)}
+                  onChange={e => setUrl(e.target.value)} // No server call on change
+                  onKeyDown={e => {
+                    if (e.key === 'Enter') handleGetTranscript(); // Trigger analysis only on Enter key press
+                  }}
                   aria-label={`Enter ${inputTab} URL`}
                 />
                 <button
@@ -357,7 +474,20 @@ export default function App() {
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                 <div className="flex flex-col items-center justify-center p-8 rounded-2xl glassmorphism">
                   <div className="w-12 h-12 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                  <p className="text-white text-lg font-medium mt-4">Processing...</p>
+                  <p className="text-white text-lg font-medium mt-4">
+                    {loadingMessage}
+                  </p>
+                  {progress > 0 && (
+                    <>
+                      <div className="w-64 bg-gray-700 rounded-full h-2 mt-4">
+                        <div
+                          className="bg-purple-400 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${progress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-white text-sm mt-2">{progress}% complete</p>
+                    </>
+                  )}
                 </div>
               </div>
             )}
@@ -480,17 +610,23 @@ export default function App() {
                 <div className="flex gap-3 mb-2">
                   <input
                     className={`flex-1 h-12 px-5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'}`}
-                    placeholder="💡 Ask anything about the content..."
+                    placeholder="💡 Ask anything or choose from the list below ..."
                     value={chatInput}
                     ref={inputRef}
                     onChange={e => {
-                      setChatInput(e.target.value);
-                      setShowDropdown(true);
+                      const value = e.target.value;
+                      setChatInput(value);
+                      setShowDropdown(value.trim() === ''); // Show dropdown only if input is empty
                     }}
-                    onFocus={() => setShowDropdown(true)}
+                    onFocus={() => {
+                      if (!chatInput.trim()) setShowDropdown(true); // Show dropdown only if input is empty
+                    }}
                     onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                     onKeyDown={e => {
-                      if (e.key === 'Enter') handleChatSubmit();
+                      if (e.key === 'Enter') {
+                        handleChatSubmit();
+                        setShowDropdown(false); // Hide the dropdown when Enter key is pressed
+                      }
                     }}
                     aria-label="Ask a question about the content"
                   />
