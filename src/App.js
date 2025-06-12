@@ -83,7 +83,6 @@ export default function App() {
   };
 
   const handleGetTranscript = async () => {
-    // Reset all states to initial values, except url for Video/Audio
     setInputTab('Video');
     setOutputTab('Transcript');
     if (inputTab === 'Text' || inputTab === 'File') {
@@ -121,7 +120,6 @@ export default function App() {
       if (inputTab === 'File') {
         const formData = new FormData();
         formData.append('file', file);
-        // Simulate progress for file upload
         const interval = setInterval(() => {
           setProgress(prev => {
             if (prev >= 90) {
@@ -189,7 +187,7 @@ export default function App() {
                   fullTranscript += data.content + ' ';
                   setTranscript(fullTranscript.trim());
                 } else if (data.type === 'progress') {
-                  setProgress(prev => Math.min(prev + 10, 90)); // Incremental progress
+                  setProgress(prev => Math.min(prev + 10, 90));
                 } else if (data.type === 'complete') {
                   setTranscript(fullTranscript.trim());
                   setProgress(100);
@@ -234,7 +232,6 @@ export default function App() {
     setter('');
     setLoading(true);
     setLoadingMessage(type === 'summary' ? 'Preparing summary...' : 'Preparing Quiz...');
-    // Simulate progress
     const interval = setInterval(() => {
       setProgress(prev => {
         if (prev >= 90) {
@@ -290,7 +287,7 @@ export default function App() {
     setChatInput('');
     setChatResponse('');
     setChatLoading(true);
-    setShowDropdown(false); // Hide the dropdown after submitting the chat
+    setShowDropdown(false);
 
     try {
       const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chat-on-topic`, {
@@ -371,17 +368,17 @@ export default function App() {
     return blocks.map((block, idx) => {
       const [q, ...a] = block.split('\n');
       return (
-        <div key={idx} className="mb-4 border-l-4 border-purple-400 pl-4">
-          <p className="font-semibold text-purple-300">{q}</p>
-          <p className="whitespace-pre-line">{a.join('\n')}</p>
+        <div key={idx} className="transition-all duration-200 hover:bg-gray-800/30">
+          <p className={`font-bold text-xl ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`}>{q.replace(/^###\s*Question\s*/, '')}</p>
+          <p className={`font-normal text-base whitespace-pre-line ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`}>{a.join('\n').replace(/^\*\*Answer:\*\*\s*/, '')}</p>
         </div>
       );
     });
   };
 
   return (
-    <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-screen font-inter`}>
-      <div className={`min-h-screen ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} overflow-hidden px-4 sm:px-6 lg:px-8 py-6`}>
+    <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-inter`}>
+      <div className={`min-h-[calc(100vh-2rem)] ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} px-4 sm:px-6 lg:px-8 py-6`}>
         <button
           onClick={toggleTheme}
           className={`fixed top-4 right-4 p-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'}`}
@@ -418,9 +415,9 @@ export default function App() {
                   className={`flex-1 px-5 py-3 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'} rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300`}
                   placeholder={`Paste a ${inputTab} URL here...`}
                   value={url}
-                  onChange={e => setUrl(e.target.value)} // No server call on change
+                  onChange={e => setUrl(e.target.value)}
                   onKeyDown={e => {
-                    if (e.key === 'Enter') handleGetTranscript(); // Trigger analysis only on Enter key press
+                    if (e.key === 'Enter') handleGetTranscript();
                   }}
                   aria-label={`Enter ${inputTab} URL`}
                 />
@@ -492,7 +489,7 @@ export default function App() {
               </div>
             )}
           </div>
-          <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-16rem)] sm:h-[calc(100vh-18rem)] mt-6">
+          <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-20rem)] sm:h-[calc(100vh-22rem)] mt-6">
             <div className={`w-full md:w-3/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'} overflow-auto custom-scrollbar`}>
               <div className="flex flex-wrap gap-3 items-center mb-4">
                 {OUTPUT_TABS.map(tab => (
@@ -563,34 +560,92 @@ export default function App() {
                   </>
                 ) : null}
               </div>
-              <div className="flex-1 overflow-auto rounded-xl p-4 shadow-inner text-base prose max-w-none custom-scrollbar bg-opacity-50 transition-all duration-300" id="output-container">
+              <div className="flex-1 overflow-auto rounded-xl p-6 shadow-inner text-base prose max-w-none custom-scrollbar bg-opacity-50 transition-all duration-300" id="output-container">
                 {outputTab === 'Transcript' && (
-                  <p id="transcript-content" className={`whitespace-pre-wrap ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+                  <p id="transcript-content" className={`whitespace-pre-wrap text-lg ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
                     {transcript || 'Your transcript will appear here once processed.'}
                   </p>
                 )}
                 {outputTab === 'Notes' && summary && (() => {
                   const cleanedSummary = summary.replace(/^#{1,6}\s*$/gm, '');
                   return (
-                    <div id="notes-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'}`}>
+                    <div id="notes-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'} text-lg`}>
                       <ReactMarkdown
                         remarkPlugins={[remarkMath]}
                         rehypePlugins={[rehypeKatex]}
                         components={{
                           h1: ({ node, children, ...props }) =>
-                            children && children.length > 0 ? <h1 className={`p-2 mb-2 ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} {...props}>{children}</h1> : null,
+                            children && children.length > 0 ? (
+                              <h1
+                                className={`text-3xl font-bold relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
+                                {...props}
+                              >
+                                {children}
+                              </h1>
+                            ) : null,
                           h2: ({ node, children, ...props }) =>
-                            children && children.length > 0 ? <h2 className={`p-2 mb-2 ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} {...props}>{children}</h2> : null,
+                            children && children.length > 0 ? (
+                              <h2
+                                className={`text-2xl font-semibold relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
+                                {...props}
+                              >
+                                {children}
+                              </h2>
+                            ) : null,
                           h3: ({ node, children, ...props }) =>
-                            children && children.length > 0 ? <h3 className={`p-2 mb-2 ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} {...props}>{children}</h3> : null,
+                            children && children.length > 0 ? (
+                              <h3
+                                className={`text-xl font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
+                                {...props}
+                              >
+                                {children}
+                              </h3>
+                            ) : null,
                           h4: ({ node, children, ...props }) =>
-                            children && children.length > 0 ? <h4 className={`p-2 mb-2 ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} {...props}>{children}</h4> : null,
+                            children && children.length > 0 ? (
+                              <h4
+                                className={`text-lg font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
+                                {...props}
+                              >
+                                {children}
+                              </h4>
+                            ) : null,
                           h5: ({ node, children, ...props }) =>
-                            children && children.length > 0 ? <h5 className={`p-2 mb-2 ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} {...props}>{children}</h5> : null,
+                            children && children.length > 0 ? (
+                              <h5
+                                className={`text-base font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
+                                {...props}
+                              >
+                                {children}
+                              </h5>
+                            ) : null,
                           h6: ({ node, children, ...props }) =>
-                            children && children.length > 0 ? <h6 className={`p-2 mb-2 ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} {...props}>{children}</h6> : null,
+                            children && children.length > 0 ? (
+                              <h6
+                                className={`text-sm font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
+                                {...props}
+                              >
+                                {children}
+                              </h6>
+                            ) : null,
+                          p: ({ node, children, ...props }) =>
+                            <p className={`mb-4 leading-relaxed ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</p>,
+                          ul: ({ node, children, ...props }) =>
+                            <ul className={`list-disc pl-6 mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ul>,
+                          ol: ({ node, children, ...props }) =>
+                            <ol className={`list-decimal pl-6 mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ol>,
+                          li: ({ node, children, ...props }) =>
+                            <li className={`mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</li>,
+                          code: ({ node, inline, children, ...props }) =>
+                            inline ? (
+                              <code className={`bg-gray-800 text-purple-300 px-1 rounded ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</code>
+                            ) : (
+                              <pre className={`bg-gray-800 border border-gray-700 p-4 rounded-lg mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>
+                                <code>{children}</code>
+                              </pre>
+                            ),
                           strong: ({ node, children, ...props }) =>
-                            <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>{children}</strong>,
+                            <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} font-semibold`} {...props}>{children}</strong>,
                         }}
                       >
                         {cleanedSummary}
@@ -616,16 +671,16 @@ export default function App() {
                     onChange={e => {
                       const value = e.target.value;
                       setChatInput(value);
-                      setShowDropdown(value.trim() === ''); // Show dropdown only if input is empty
+                      setShowDropdown(value.trim() === '');
                     }}
                     onFocus={() => {
-                      if (!chatInput.trim()) setShowDropdown(true); // Show dropdown only if input is empty
+                      if (!chatInput.trim()) setShowDropdown(true);
                     }}
                     onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
                     onKeyDown={e => {
                       if (e.key === 'Enter') {
                         handleChatSubmit();
-                        setShowDropdown(false); // Hide the dropdown when Enter key is pressed
+                        setShowDropdown(false);
                       }
                     }}
                     aria-label="Ask a question about the content"

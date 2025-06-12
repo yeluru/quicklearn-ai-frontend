@@ -18,6 +18,15 @@ module.exports = {
           900: '#4c1d95',
         },
       },
+      padding: {
+        '1px': '1px', // Add 1px padding utility
+        '2': '7px', // Reduce default '2' padding from 8px to 7px (1px less)
+        '3': '11px', // Reduce default '3' padding from 12px to 11px
+        '4': '15px', // Reduce default '4' padding from 16px to 15px
+        '5': '19px', // Reduce default '5' padding from 20px to 19px
+        '6': '23px', // Reduce default '6' padding from 24px to 23px
+        '8': '31px', // Reduce default '8' padding from 32px to 31px
+      },
       animation: {
         'fade-in': 'fadeIn 0.3s ease-in-out',
       },
@@ -45,5 +54,30 @@ module.exports = {
       }),
     },
   },
-  plugins: [require('@tailwindcss/typography')],
+  plugins: [
+    require('@tailwindcss/typography'),
+    // Add custom scrollbar styling
+    function({ addUtilities }) {
+      addUtilities({
+        '.custom-scrollbar': {
+          'scrollbar-width': 'thin',
+          'scrollbar-color': `${theme => theme('colors.purple.400')} ${theme => theme('colors.gray.800')}`,
+          '&::-webkit-scrollbar': {
+            width: '8px',
+          },
+          '&::-webkit-scrollbar-track': {
+            background: theme => theme('colors.gray.800'),
+            'border-radius': '4px',
+          },
+          '&::-webkit-scrollbar-thumb': {
+            background: theme => theme('colors.purple.400'),
+            'border-radius': '4px',
+          },
+          '&::-webkit-scrollbar-thumb:hover': {
+            background: theme => theme('colors.purple.300'),
+          },
+        },
+      });
+    },
+  ],
 };
