@@ -35,6 +35,8 @@ export default function App() {
   const [theme, setTheme] = useState('dark');
   const [progress, setProgress] = useState(0);
   const [loadingMessage, setLoadingMessage] = useState('');
+  const [rightPanelTab, setRightPanelTab] = useState('Video');
+  const [embedUrl, setEmbedUrl] = useState(''); // New state for embed URL
 
   useEffect(() => {
     // Removed auto-focus
@@ -42,6 +44,41 @@ export default function App() {
 
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'dark' ? 'light' : 'dark'));
+  };
+
+  const getEmbedUrl = (url) => {
+    try {
+      if (!url || !url.trim() || !url.match(/^https?:\/\//)) {
+        return '';
+      }
+      const urlObj = new URL(url);
+      if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+        const videoId = extractVideoId(url);
+        return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+      } else if (urlObj.hostname.includes('ted.com')) {
+        const talkId = urlObj.pathname.match(/talks\/([^/?]+)/)?.[1];
+        return talkId ? `https://embed.ted.com/talks/${talkId}` : '';
+      } else if (urlObj.hostname.includes('instagram.com')) {
+        const shortCode = urlObj.pathname.match(/reel\/([A-Za-z0-9_-]+)/)?.[1] || urlObj.pathname.match(/p\/([A-Za-z0-9_-]+)/)?.[1];
+        return shortCode ? `https://www.instagram.com/reel/${shortCode}/embed` : '';
+      } else if (urlObj.hostname.includes('tiktok.com')) {
+        const videoId = urlObj.pathname.match(/@[^/]+\/video\/(\d+)/)?.[1];
+        return videoId ? `https://www.tiktok.com/embed/${videoId}` : '';
+      } else if (urlObj.hostname.includes('vimeo.com')) {
+        const videoId = urlObj.pathname.match(/\/(\d+)/)?.[1];
+        return videoId ? `https://player.vimeo.com/video/${videoId}` : '';
+      }
+      return '';
+    } catch (e) {
+      console.error('Invalid URL:', url, e);
+      return '';
+    }
+  };
+
+  const extractVideoId = (url) => {
+    const urlObj = new URL(url);
+    const videoId = urlObj.searchParams.get('v') || urlObj.pathname.split('/').pop();
+    return videoId || '';
   };
 
   const copyRenderedContent = async () => {
@@ -106,6 +143,7 @@ export default function App() {
     setSummaryCompleted(false);
     setChatLoading(false);
     setSuggestionsLoading(false);
+    setEmbedUrl(''); // Reset embed URL
 
     try {
       if (inputTab === 'Text') {
@@ -191,6 +229,7 @@ export default function App() {
                 } else if (data.type === 'complete') {
                   setTranscript(fullTranscript.trim());
                   setProgress(100);
+                  setEmbedUrl(getEmbedUrl(url)); // Set embed URL after successful processing
                 } else if (data.type === 'error') {
                   throw new Error(data.message || 'Unknown streaming error');
                 }
@@ -377,17 +416,16 @@ export default function App() {
   };
 
   return (
-    <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-inter`}>
-      <div className={`min-h-[calc(100vh-2rem)] ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} px-4 sm:px-6 lg:px-8 py-6`}>
-        <button
-          onClick={toggleTheme}
-          className={`fixed top-4 right-4 p-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'}`}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-        >
-          {theme === 'dark' ? <FaSun size={24} /> : <FaMoon size={24} />}
-        </button>
-        <div className="w-full max-w-7xl mx-auto">
+    <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-inter flex justify-center`}>
+      <div className={`min-h-[calc(100vh-2rem)] ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} px-4 sm:px-6 lg:px-8 py-6`} style={{ maxWidth: '90%' }}>   <button
+        onClick={toggleTheme}
+        className={`fixed top-4 right-4 p-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'}`}
+        title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+      >
+        {theme === 'dark' ? <FaSun size={24} /> : <FaMoon size={24} />}
+      </button>
+        <div className="w-full">
           <h1 className={`text-5xl font-extrabold text-center ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} mb-3 tracking-tight`}>learn-quickly.ai</h1>
           <p className={`text-xl text-center ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-6 font-medium`}>Your AI-powered learning companion</p>
           <div className={`shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
@@ -397,8 +435,8 @@ export default function App() {
                   key={tab}
                   onClick={() => setInputTab(tab)}
                   className={`relative px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ease-in-out ${inputTab === tab
-                      ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                      : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
+                    ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                    : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
                     }`}
                   aria-label={`Select ${tab} input`}
                 >
@@ -660,108 +698,153 @@ export default function App() {
                 )}
               </div>
             </div>
-            <div className={`w-full md:w-2/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'} overflow-auto custom-scrollbar h-full`}>
-              <div className="relative">
-                <div className="flex gap-3 mb-2">
-                  <input
-                    className={`flex-1 h-12 px-5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'}`}
-                    placeholder="💡 Ask anything or choose from the list below ..."
-                    value={chatInput}
-                    ref={inputRef}
-                    onChange={e => {
-                      const value = e.target.value;
-                      setChatInput(value);
-                      setShowDropdown(value.trim() === '');
-                    }}
-                    onFocus={() => {
-                      if (!chatInput.trim()) setShowDropdown(true);
-                    }}
-                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        handleChatSubmit();
-                        setShowDropdown(false);
-                      }
-                    }}
-                    aria-label="Ask a question about the content"
-                  />
+            <div className={`w-full md:w-2/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'} overflow-auto custom-scrollbar h-[calc(100vh-20rem)] sm:h-[calc(100vh-22rem)]`}>
+              {/* Tab Navigation */}
+              <div className="flex gap-3 mb-4">
+                {transcript && (
                   <button
-                    disabled={!chatInput.trim()}
-                    className={`h-12 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${chatInput.trim()
-                      ? `${theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600'}`
-                      : `${theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed'}`}`}
-                    onClick={handleChatSubmit}
-                    aria-label="Submit question"
+                    onClick={() => setRightPanelTab('Video')}
+                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Video'
+                      ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                      : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`}`}
+                    aria-label="Switch to Video tab"
                   >
-                    Send
+                    Video
                   </button>
-                </div>
-                {showDropdown && suggestedData.length > 0 && (
-                  <div className="absolute z-20 w-full max-h-64 overflow-auto shadow-xl rounded-xl mt-1 glassmorphism" style={{ top: '100%' }}>
-                    <div className={`${theme === 'dark' ? 'bg-gray-800/70 border-gray-700' : 'bg-white/70 border-gray-300'} animate-fade-in`}>
-                      {suggestedData.map((item, idx) => (
-                        <div key={idx} className={`border-b px-4 py-3 transition-all duration-200 hover:bg-purple-500/20 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
-                          <div
-                            className={`font-semibold cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-purple-600'}`}
-                            onClick={() => setChatInput(item.topic)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={e => { if (e.key === 'Enter') setChatInput(item.topic); }}
-                          >
-                            {item.topic}
-                          </div>
-                          <div
-                            className={`pl-4 text-sm cursor-pointer hover:underline ${theme === 'dark' ? 'text-gray-100' : 'text-gray-600'}`}
-                            onClick={() => setChatInput(item.question)}
-                            role="button"
-                            tabIndex={0}
-                            onKeyDown={e => { if (e.key === 'Enter') setChatInput(item.question); }}
-                          >
-                            {item.question}
-                          </div>
-                        </div>
-                      ))}
+                )}
+                <button
+                  onClick={() => setRightPanelTab('Chat')}
+                  className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Chat'
+                    ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                    : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`}`}
+                  aria-label="Switch to Chat tab"
+                >
+                  Chat
+                </button>
+              </div>
+              {/* Tab Content */}
+              <div className="flex-1 overflow-y-auto">
+                {rightPanelTab === 'Video' && transcript && (
+                  <div className={`w-full h-full ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-xl p-4 overflow-y-auto`}>
+                    <h2 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Video</h2>
+                    <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
+                      <iframe
+                        className="absolute top-0 left-0 w-full h-full rounded-lg"
+                        src={embedUrl} // Use the computed embed URL
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title="Embedded Video"
+                      />
                     </div>
                   </div>
                 )}
-              </div>
-              <div className={`flex-1 overflow-auto rounded-xl p-4 shadow-inner custom-scrollbar ${showDropdown ? 'mt-72' : ''}`} ref={chatContainerRef}>
-                {(() => {
-                  const grouped = [];
-                  for (let i = 0; i < chatHistory.length; i += 2) {
-                    const userMsg = chatHistory[i];
-                    const botMsg = chatHistory[i + 1];
-                    grouped.push({ userMsg, botMsg });
-                  }
-                  return grouped.reverse().map((pair, i) => (
-                    <div key={i} className="mb-4">
-                      {pair.userMsg && (
-                        <div className={`text-right px-4 py-2 rounded-lg mb-1 inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
-                          <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
-                            components={{
-                              strong: ({ node, children, ...props }) =>
-                                <strong className={`${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</strong>,
-                            }}
-                          >
-                            {pair.userMsg.content}
-                          </ReactMarkdown>
-                        </div>
-                      )}
-                      {pair.botMsg && (
-                        <div className={`text-left px-4 py-2 rounded-lg inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
-                          <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
-                            components={{
-                              strong: ({ node, children, ...props }) =>
-                                <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>{children}</strong>,
-                            }}
-                          >
-                            {pair.botMsg.content}
-                          </ReactMarkdown>
+                {rightPanelTab === 'Chat' && (
+                  <div className={`w-full h-full ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-xl p-4 overflow-y-auto flex flex-col`}>
+                    <div className="relative flex-shrink-0">
+                      <div className="flex gap-3 mb-2">
+                        <input
+                          className={`flex-1 h-12 px-5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                          placeholder="💡 Ask anything or choose from the list below ..."
+                          value={chatInput}
+                          ref={inputRef}
+                          onChange={e => {
+                            const value = e.target.value;
+                            setChatInput(value);
+                            setShowDropdown(value.trim() === '');
+                          }}
+                          onFocus={() => {
+                            if (!chatInput.trim()) setShowDropdown(true);
+                          }}
+                          onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              handleChatSubmit();
+                              setShowDropdown(false);
+                            }
+                          }}
+                          aria-label="Ask a question about the content"
+                        />
+                        <button
+                          disabled={!chatInput.trim()}
+                          className={`h-12 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${chatInput.trim()
+                            ? `${theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600'}`
+                            : `${theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed'}`}`}
+                          onClick={handleChatSubmit}
+                          aria-label="Submit question"
+                        >
+                          Send
+                        </button>
+                      </div>
+                      {showDropdown && suggestedData.length > 0 && (
+                        <div className="absolute z-20 w-full max-h-64 overflow-auto shadow-xl rounded-xl mt-1 glassmorphism" style={{ top: '100%' }}>
+                          <div className={`${theme === 'dark' ? 'bg-gray-800/70 border-gray-700' : 'bg-white/70 border-gray-300'} animate-fade-in`}>
+                            {suggestedData.map((item, idx) => (
+                              <div key={idx} className={`border-b px-4 py-3 transition-all duration-200 hover:bg-purple-500/20 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
+                                <div
+                                  className={`font-semibold cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-purple-600'}`}
+                                  onClick={() => setChatInput(item.topic)}
+                                  role="button"
+                                  tabIndex={0}
+                                  onKeyDown={e => { if (e.key === 'Enter') setChatInput(item.topic); }}
+                                >
+                                  {item.topic}
+                                </div>
+                                <div
+                                  className={`pl-4 text-sm cursor-pointer hover:underline ${theme === 'dark' ? 'text-gray-100' : 'text-gray-600'}`}
+                                  onClick={() => setChatInput(item.question)}
+                                  role="button"
+                                  tabIndex={0}
+                                  onKeyDown={e => { if (e.key === 'Enter') setChatInput(item.question); }}
+                                >
+                                  {item.question}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
-                  ));
-                })()}
+                    <div className="flex-1 overflow-y-auto rounded-xl p-4 shadow-inner custom-scrollbar" ref={chatContainerRef}>
+                      {(() => {
+                        const grouped = [];
+                        for (let i = 0; i < chatHistory.length; i += 2) {
+                          const userMsg = chatHistory[i];
+                          const botMsg = chatHistory[i + 1];
+                          grouped.push({ userMsg, botMsg });
+                        }
+                        return grouped.reverse().map((pair, i) => (
+                          <div key={i} className="mb-4">
+                            {pair.userMsg && (
+                              <div className={`text-right px-4 py-2 rounded-lg mb-1 inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
+                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
+                                  components={{
+                                    strong: ({ node, children, ...props }) =>
+                                      <strong className={`${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</strong>,
+                                  }}
+                                >
+                                  {pair.userMsg.content}
+                                </ReactMarkdown>
+                              </div>
+                            )}
+                            {pair.botMsg && (
+                              <div className={`text-left px-4 py-2 rounded-lg inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
+                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
+                                  components={{
+                                    strong: ({ node, children, ...props }) =>
+                                      <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>{children}</strong>,
+                                  }}
+                                >
+                                  {pair.botMsg.content}
+                                </ReactMarkdown>
+                              </div>
+                            )}
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
