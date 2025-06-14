@@ -143,9 +143,12 @@ export default function App() {
     setSummaryCompleted(false);
     setChatLoading(false);
     setSuggestionsLoading(false);
-    setEmbedUrl(''); // Reset embed URL
 
     try {
+      // Set the embed URL immediately
+      const embedUrl = getEmbedUrl(url);
+      setEmbedUrl(embedUrl);
+
       if (inputTab === 'Text') {
         setTranscript(textInput);
         setOutputTab('Transcript');
@@ -229,7 +232,6 @@ export default function App() {
                 } else if (data.type === 'complete') {
                   setTranscript(fullTranscript.trim());
                   setProgress(100);
-                  setEmbedUrl(getEmbedUrl(url)); // Set embed URL after successful processing
                 } else if (data.type === 'error') {
                   throw new Error(data.message || 'Unknown streaming error');
                 }
@@ -417,7 +419,7 @@ export default function App() {
 
   return (
     <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-inter flex justify-center`}>
-      <div className={`min-h-[calc(100vh-2rem)] ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} px-4 sm:px-6 lg:px-8 py-6`} style={{ maxWidth: '90%' }}>   <button
+      <div className={`min-h-[calc(100vh-2rem)] ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} px-4 sm:px-6 lg:px-8 py-6 w-[90%]`}>   <button
         onClick={toggleTheme}
         className={`fixed top-4 right-4 p-2 rounded-full shadow-lg transition-all duration-300 transform hover:scale-110 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'}`}
         title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
