@@ -1,5 +1,6 @@
 import React from 'react';
 import { FaFileAlt, FaBook, FaQuestionCircle, FaComments, FaFileUpload, FaMoon, FaSun, FaUserGraduate, FaBriefcase, FaBrain } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 function LandingPage({ theme, toggleTheme, onStart }) {
   return (
@@ -143,9 +144,9 @@ function LandingPage({ theme, toggleTheme, onStart }) {
       {/* Footer */}
       <footer className={`py-8 px-6 ${theme === 'dark' ? 'bg-gray-800' : 'bg-gray-100'} text-center`}>
         <div className="flex justify-center space-x-6">
-          <a href="#" className={`${theme === 'dark' ? 'text-gray-300 hover:text-purple-300' : 'text-gray-600 hover:text-purple-600'} font-medium`}>About Us</a>
-          <a href="#" className={`${theme === 'dark' ? 'text-gray-300 hover:text-purple-300' : 'text-gray-600 hover:text-purple-600'} font-medium`}>Contact</a>
-          <a href="#" className={`${theme === 'dark' ? 'text-gray-300 hover:text-purple-300' : 'text-gray-600 hover:text-purple-600'} font-medium`}>Privacy</a>
+          <Link to="/about" className={`${theme === 'dark' ? 'text-gray-300 hover:text-purple-300' : 'text-gray-600 hover:text-purple-600'} font-medium`}>About Us</Link>
+          <Link to="/contact" className={`${theme === 'dark' ? 'text-gray-300 hover:text-purple-300' : 'text-gray-600 hover:text-purple-600'} font-medium`}>Contact</Link>
+          <Link to="/privacy" className={`${theme === 'dark' ? 'text-gray-300 hover:text-purple-300' : 'text-gray-600 hover:text-purple-600'} font-medium`}>Privacy</Link>
         </div>
         <p className={`mt-4 ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>© 2025 learn-quickly.ai. All rights reserved.</p>
       </footer>
@@ -156,9 +157,8 @@ function LandingPage({ theme, toggleTheme, onStart }) {
 function FeatureWidget({ icon, title, description, theme }) {
   return (
     <div
-      className={`flex flex-col items-center p-6 rounded-2xl shadow-lg ${
-        theme === 'dark' ? 'bg-gray-800/50 text-gray-100 glassmorphism' : 'bg-white text-gray-900'
-      } hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105`}
+      className={`flex flex-col items-center p-6 rounded-2xl shadow-lg ${theme === 'dark' ? 'bg-gray-800/50 text-gray-100 glassmorphism' : 'bg-white text-gray-900'
+        } hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-105`}
       role="article"
       aria-label={`Feature: ${title}`}
     >
@@ -174,17 +174,15 @@ function FeatureWidget({ icon, title, description, theme }) {
 function StepCard({ number, title, description, theme }) {
   return (
     <div
-      className={`relative flex items-start p-6 rounded-xl ${
-        theme === 'dark' ? 'bg-gray-800/50 text-gray-100 glassmorphism' : 'bg-white text-gray-900'
-      } hover:scale-105 transition-all duration-300 animate-fade-in`}
+      className={`relative flex items-start p-6 rounded-xl ${theme === 'dark' ? 'bg-gray-800/50 text-gray-100 glassmorphism' : 'bg-white text-gray-900'
+        } hover:scale-105 transition-all duration-300 animate-fade-in`}
       role="article"
       aria-label={`Step ${number}: ${title}`}
     >
       {/* Number Badge */}
       <div
-        className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full mr-4 ${
-          theme === 'dark' ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-600'
-        } text-2xl font-bold`}
+        className={`flex-shrink-0 w-12 h-12 flex items-center justify-center rounded-full mr-4 ${theme === 'dark' ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-600'
+          } text-2xl font-bold`}
       >
         {number}
       </div>
@@ -205,16 +203,14 @@ function StepCard({ number, title, description, theme }) {
 function UseCaseCard({ icon, title, description, theme, offset }) {
   return (
     <div
-      className={`p-6 rounded-xl shadow-lg ${
-        theme === 'dark' ? 'bg-gray-800/50 text-gray-100 glassmorphism' : 'bg-white text-gray-900'
-      } hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 animate-fade-in ${offset}`}
+      className={`p-6 rounded-xl shadow-lg ${theme === 'dark' ? 'bg-gray-800/50 text-gray-100 glassmorphism' : 'bg-white text-gray-900'
+        } hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 animate-fade-in ${offset}`}
       role="article"
       aria-label={`Use Case: ${title}`}
     >
       <div
-        className={`p-3 rounded-full mb-4 w-12 h-12 flex items-center justify-center ${
-          theme === 'dark' ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-600'
-        }`}
+        className={`p-3 rounded-full mb-4 w-12 h-12 flex items-center justify-center ${theme === 'dark' ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-600'
+          }`}
       >
         {icon}
       </div>

@@ -54,3 +54,12 @@
     flex-direction: column;
   }
 }
+
+.topic-title {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+.dark .topic-title {
+  color: #e5e7eb; /* gray-200 */
+}

@@ -1,0 +1,29 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "jest": true
+    },
+    "extends": [
+        "react-app",
+        "react-app/jest",
+        "plugin:react/recommended",
+        "plugin:jsx-a11y/recommended",
+        "plugin:react-hooks/recommended"
+    ],
+    "parserOptions": {
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react",
+        "jsx-a11y",
+        "react-hooks"
+    ],
+    "rules": {
+        "react/prop-types": "off",
+        "no-unused-vars": "warn",
+        "jsx-a11y/anchor-is-valid": "warn",
+        "react/react-in-jsx-scope": "off"
+    }
+}

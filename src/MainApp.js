@@ -50,7 +50,7 @@ export default function MainApp({ theme, toggleTheme }) {
             if (videoId && videoId !== lastVideoId) {
                 const fetchVideoSummary = async () => {
                     try {
-                        const response = await fetch('http://localhost:8000/summarize-video', {
+                        const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/summary/summarize-video`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ transcript: transcript.slice(0, 10000), url: embedUrl })
@@ -199,7 +199,7 @@ export default function MainApp({ theme, toggleTheme }) {
                         return prev + 10;
                     });
                 }, 300);
-                const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/upload`, formData);
+                const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/transcript/upload`, formData);
                 clearInterval(interval);
                 if (res?.data?.transcript) {
                     setTranscript(res.data.transcript);
@@ -217,7 +217,7 @@ export default function MainApp({ theme, toggleTheme }) {
                 return;
             }
 
-            let endpoint = '/transcript-stream';
+            let endpoint = '/transcript/stream';
             let normalizedUrl = url;
             if (inputTab === 'Video') {
                 const matchLive = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/);
@@ -298,12 +298,10 @@ export default function MainApp({ theme, toggleTheme }) {
     const streamOutput = useCallback(async (type, force = false) => {
         setSummaryCompleted(false);
         if (!transcript) return;
-
-        const url = type === 'summary' ? '/summarize-stream' : '/qna-stream';
+        const url = type === 'summary' ? '/summary/summarize-stream' : '/summary/qna-stream';
         const setter = type === 'summary' ? setSummary : setQnaText;
         const value = type === 'summary' ? summary : qnaText;
         if (!force && value) return;
-
         setter('');
         setLoading(true);
         setLoadingMessage(type === 'summary' ? 'Preparing summary...' : 'Preparing Quiz...');
@@ -322,12 +320,10 @@ export default function MainApp({ theme, toggleTheme }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ transcript, refresh: force, use_openai: true })
             });
-
             const reader = res.body.getReader();
             const decoder = new TextDecoder('utf-8');
             let done = false;
             let content = '';
-
             while (!done) {
                 const { value, done: isDone } = await reader.read();
                 if (value) {
@@ -337,10 +333,9 @@ export default function MainApp({ theme, toggleTheme }) {
                 }
                 done = isDone;
             }
-
             if (type === 'summary') {
                 setSummary(content);
-                setSummaryCompleted(true);
+                setSummaryCompleted(true); // Ensure this is set
             }
             setProgress(100);
         } catch (err) {
@@ -350,31 +345,35 @@ export default function MainApp({ theme, toggleTheme }) {
         setLoading(false);
         setLoadingMessage('');
         setProgress(0);
-        setSummaryCompleted(true);
+        setSummaryCompleted(true); // Double-check completion
     }, [transcript, summary, qnaText]);
 
-    const handleChatSubmit = async (customMessage = null) => {
+    const handleChatSubmit = useCallback(async (customMessage = null) => {
         const input = (typeof customMessage === 'string' ? customMessage : chatInput).trim();
-        if (!input) return;
-
+        if (!input || chatLoading) return;
+        if (handleChatSubmit.lastInput === input && chatLoading) return;
+        handleChatSubmit.lastInput = input;
+        console.log(`Submitting chat: ${input}`);
         const newHistory = [...chatHistory, { role: 'user', content: input }];
         setChatHistory(newHistory);
         setChatInput('');
         setChatResponse('');
         setChatLoading(true);
         setShowDropdown(false);
-
         try {
-            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chat-on-topic`, {
+            const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chat/on-topic`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ summary, chatHistory: newHistory })
             });
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+            }
+            console.log('Received response from /chat/on-topic');
             const reader = res.body.getReader();
             const decoder = new TextDecoder('utf-8');
             let done = false;
             let answer = '';
-
             while (!done) {
                 const { value, done: isDone } = await reader.read();
                 if (value) {
@@ -384,17 +383,24 @@ export default function MainApp({ theme, toggleTheme }) {
                 }
                 done = isDone;
             }
-
             setChatHistory(prev => [...prev, { role: 'assistant', content: answer }]);
+            console.log(`Assistant response added: ${answer.slice(0, 50)}...`);
         } catch (err) {
+            console.error('Chat error:', err.message);
             setChatResponse("❌ Unable to respond.");
+            setChatHistory(prev => [...prev, { role: 'assistant', content: "❌ Unable to respond." }]);
+        } finally {
+            setChatLoading(false);
+            handleChatSubmit.lastInput = null;
         }
-        setChatLoading(false);
-    };
+    }, [chatHistory, chatInput, chatLoading, summary]);
+
+    // Initialize the static property outside the function
+    handleChatSubmit.lastInput = null;
 
     useEffect(() => {
         if (chatContainerRef.current) {
-            chatContainerRef.current.scrollTop = 0;
+            chatContainerRef.current.scrollTop = 0; // Scroll to top
         }
     }, [chatHistory]);
 
@@ -407,7 +413,6 @@ export default function MainApp({ theme, toggleTheme }) {
 
     useEffect(() => {
         const trimmedSummary = summary?.trim();
-
         if (
             summaryCompleted &&
             trimmedSummary &&
@@ -416,8 +421,7 @@ export default function MainApp({ theme, toggleTheme }) {
         ) {
             prevSummaryRef.current = trimmedSummary;
             setSuggestionsLoading(true);
-
-            fetch(`${process.env.REACT_APP_API_BASE_URL}/suggested-questions`, {
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/chat/suggested-questions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ summary: trimmedSummary })
@@ -428,7 +432,7 @@ export default function MainApp({ theme, toggleTheme }) {
                         setSuggestedData(data.questions);
                     }
                 })
-                .catch(err => console.error("❌ Error loading suggestions", err))
+                .catch(err => console.error("Error loading suggestions", err))
                 .finally(() => setSuggestionsLoading(false));
         }
     }, [summaryCompleted, summary, suggestionsLoading]);
@@ -469,7 +473,6 @@ export default function MainApp({ theme, toggleTheme }) {
             );
         });
     };
-
 
     return (
         <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-sans flex justify-center`}>
@@ -656,6 +659,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                 ) : null}
                             </div>
                             <div className="flex-1 overflow-auto rounded-xl p-6 shadow-inner text-base prose max-w-none custom-scrollbar bg-opacity-50 transition-all duration-300" id="output-container">
+                                {topicTitle && <h2 className="topic-title">{topicTitle}</h2>}
                                 {outputTab === 'Transcript' && (
                                     <p id="transcript-content" className={`whitespace-pre-wrap text-lg ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
                                         {transcript || 'Your transcript will appear here once processed.'}
@@ -864,15 +868,20 @@ export default function MainApp({ theme, toggleTheme }) {
                                             )}
                                         </div>
                                         <div className="flex-1 overflow-y-auto rounded-xl p-4 shadow-inner custom-scrollbar" ref={chatContainerRef}>
+                                            {chatLoading && (
+                                                <div className={`text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-4`}>Loading response...</div>
+                                            )}
                                             {(() => {
                                                 const grouped = [];
                                                 for (let i = 0; i < chatHistory.length; i += 2) {
                                                     const userMsg = chatHistory[i];
                                                     const botMsg = chatHistory[i + 1];
-                                                    grouped.push({ userMsg, botMsg });
+                                                    if (userMsg && botMsg) {
+                                                        grouped.push({ userMsg, botMsg });
+                                                    }
                                                 }
-                                                return grouped.reverse().map((pair, i) => (
-                                                    <div key={i} className="mb-4">
+                                                return grouped.reverse().map((pair, index) => (
+                                                    <div key={index} className="mb-4">
                                                         {pair.userMsg && (
                                                             <div className={`text-right px-4 py-2 rounded-lg mb-1 inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
                                                                 <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
