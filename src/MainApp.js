@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import jsPDF from 'jspdf';
-import ReactMarkdown from 'react-markdown';
-import remarkMath from 'remark-math';
-import rehypeKatex from 'rehype-katex';
 import 'katex/dist/katex.min.css';
 import { FaMoon, FaSun } from 'react-icons/fa';
+import ChatPanel from './components/ChatPanel';
+import VideoPanel from './components/VideoPanel';
+import QuizPanel from './components/QuizPanel';
+import MarkdownSummary from './components/MarkdownSummary';
 
 const INPUT_TABS = ['Video', 'Audio', 'Text', 'File'];
 const OUTPUT_TABS = ['Transcript', 'Notes', 'Quiz'];
@@ -39,6 +40,10 @@ export default function MainApp({ theme, toggleTheme }) {
     const [videoSummary, setVideoSummary] = useState('');
     const [isTranscriptComplete, setIsTranscriptComplete] = useState(false);
     const [lastVideoId, setLastVideoId] = useState('');
+    const suggestionsFetchedRef = useRef(false);
+    const transcriptContainerRef = useRef(null);
+    const summaryContainerRef = useRef(null);
+    const quizContainerRef = useRef(null);
 
     useEffect(() => {
         // Removed auto-focus
@@ -172,11 +177,10 @@ export default function MainApp({ theme, toggleTheme }) {
         setIsTranscriptComplete(false); // Reset transcript completion
         setVideoSummary(''); // Reset video summary
         setLastVideoId(''); // Reset last video ID
+        suggestionsFetchedRef.current = false; // Reset fetch flag
 
         try {
-            const embedUrl = getEmbedUrl(url);
-            setEmbedUrl(embedUrl);
-
+            
             if (inputTab === 'Text') {
                 setTranscript(textInput);
                 setOutputTab('Transcript');
@@ -184,6 +188,7 @@ export default function MainApp({ theme, toggleTheme }) {
                 setLoadingMessage('');
                 setProgress(0);
                 setIsTranscriptComplete(true);
+                console.log('Transcript complete:', { source: 'Text', transcriptLength: textInput.length });
                 return;
             }
 
@@ -207,6 +212,7 @@ export default function MainApp({ theme, toggleTheme }) {
                     setOutputTab('Transcript');
                     setProgress(100);
                     setIsTranscriptComplete(true);
+                    console.log('Transcript complete:', { source: 'File', transcriptLength: res.data.transcript.length });
                 } else {
                     alert('No transcript found or failed to extract data.');
                     setIsTranscriptComplete(true);
@@ -240,7 +246,9 @@ export default function MainApp({ theme, toggleTheme }) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder('utf-8');
             let done = false;
+            let receivedTranscriptChunk = false;
             let fullTranscript = '';
+            let title = 'QuickLearn';
 
             while (!done) {
                 const { value, done: isDone } = await reader.read();
@@ -254,23 +262,23 @@ export default function MainApp({ theme, toggleTheme }) {
                             try {
                                 const data = JSON.parse(jsonStr);
                                 if (data.type === 'title') {
-                                    setTopicTitle(data.content || 'QuickLearn');
+                                    title = data.content || 'QuickLearn';
                                 } else if (data.type === 'transcript_chunk') {
-                                    fullTranscript += data.content + ' ';
-                                    setTranscript(fullTranscript.trim());
+                                    setTranscript(prev => prev + data.content + ' ');
+                                    receivedTranscriptChunk = true;
                                 } else if (data.type === 'progress') {
                                     setProgress(prev => Math.min(prev + 10, 90));
                                 } else if (data.type === 'complete') {
-                                    setTranscript(fullTranscript.trim());
+                                    setTopicTitle(title);
                                     setProgress(100);
-                                    setIsTranscriptComplete(true); // Mark transcript complete
+                                    setIsTranscriptComplete(true);
+                                    console.log('Transcript complete:', { source: 'Video', transcriptLength: transcript.length });
                                 } else if (data.type === 'error') {
                                     throw new Error(data.message || 'Unknown streaming error');
                                 }
                             } catch (parseError) {
                                 console.warn('Failed to parse chunk as JSON:', parseError);
-                                fullTranscript += chunk.replace('data: ', '') + ' ';
-                                setTranscript(fullTranscript.trim());
+                                setTranscript(prev => prev + chunk.replace('data: ', '') + ' ');
                             }
                         }
                     }
@@ -278,16 +286,18 @@ export default function MainApp({ theme, toggleTheme }) {
                 done = isDone;
             }
 
-            if (fullTranscript.trim()) {
+            if (receivedTranscriptChunk) {
                 setOutputTab('Transcript');
             } else {
                 alert('No transcript extracted. Please check the URL and try again.');
                 setIsTranscriptComplete(true);
+                console.log('Transcript complete:', { source: 'Video', transcriptLength: 0 });
             }
         } catch (err) {
             console.error('Transcript streaming error:', err);
             alert(`Failed to fetch transcript: ${err.message}. Please try again.`);
             setIsTranscriptComplete(true);
+            console.log('Transcript complete:', { source: 'Video', transcriptLength: 0 });
         } finally {
             setLoading(false);
             setLoadingMessage('');
@@ -353,7 +363,7 @@ export default function MainApp({ theme, toggleTheme }) {
         if (!input || chatLoading) return;
         if (handleChatSubmit.lastInput === input && chatLoading) return;
         handleChatSubmit.lastInput = input;
-        console.log(`Submitting chat: ${input}`);
+        console.log(`Submitting chat: ${input}`, { transcriptLength: transcript?.length || 0 });
         const newHistory = [...chatHistory, { role: 'user', content: input }];
         setChatHistory(newHistory);
         setChatInput('');
@@ -361,13 +371,18 @@ export default function MainApp({ theme, toggleTheme }) {
         setChatLoading(true);
         setShowDropdown(false);
         try {
+            if (!transcript) {
+                console.warn('No transcript available, sending empty transcript');
+            }
             const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}/chat/on-topic`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ summary, chatHistory: newHistory })
+                body: JSON.stringify({ transcript: transcript || '', chatHistory: newHistory })
             });
             if (!res.ok) {
-                throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+                const errorText = await res.text();
+                console.error(`Chat error: HTTP ${res.status}: ${errorText}`);
+                throw new Error(`HTTP ${res.status}: ${errorText}`);
             }
             console.log('Received response from /chat/on-topic');
             const reader = res.body.getReader();
@@ -393,7 +408,7 @@ export default function MainApp({ theme, toggleTheme }) {
             setChatLoading(false);
             handleChatSubmit.lastInput = null;
         }
-    }, [chatHistory, chatInput, chatLoading, summary]);
+    }, [chatHistory, chatInput, chatLoading, transcript]);
 
     // Initialize the static property outside the function
     handleChatSubmit.lastInput = null;
@@ -412,30 +427,29 @@ export default function MainApp({ theme, toggleTheme }) {
     const prevSummaryRef = useRef('');
 
     useEffect(() => {
-        const trimmedSummary = summary?.trim();
-        if (
-            summaryCompleted &&
-            trimmedSummary &&
-            trimmedSummary !== prevSummaryRef.current &&
-            !suggestionsLoading
-        ) {
-            prevSummaryRef.current = trimmedSummary;
+        if (isTranscriptComplete && transcript && !suggestionsLoading && !suggestionsFetchedRef.current) {
+            console.log('useEffect triggered:', { transcriptLength: transcript.length, suggestionsFetched: suggestionsFetchedRef.current });
+            suggestionsFetchedRef.current = true; // Prevent future runs
             setSuggestionsLoading(true);
             fetch(`${process.env.REACT_APP_API_BASE_URL}/chat/suggested-questions`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ summary: trimmedSummary })
+                body: JSON.stringify({ summary: transcript.slice(0, 10000) })
             })
-                .then(res => res.json())
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    return res.json();
+                })
                 .then(data => {
+                    console.log('Questions received:', data.questions);
                     if (Array.isArray(data.questions)) {
                         setSuggestedData(data.questions);
                     }
                 })
-                .catch(err => console.error("Error loading suggestions", err))
+                .catch(err => console.error('Error loading suggestions:', err))
                 .finally(() => setSuggestionsLoading(false));
         }
-    }, [summaryCompleted, summary, suggestionsLoading]);
+    }, [isTranscriptComplete, transcript, suggestionsLoading]);
 
     const handleRefresh = (tab) => {
         if (tab === 'Notes') streamOutput('summary', true);
@@ -473,6 +487,29 @@ export default function MainApp({ theme, toggleTheme }) {
             );
         });
     };
+
+    useEffect(() => {
+        if (outputTab === 'Transcript' && transcriptContainerRef.current) {
+            transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
+        } else if (outputTab === 'Notes' && summaryContainerRef.current) {
+            summaryContainerRef.current.scrollTop = summaryContainerRef.current.scrollHeight;
+        } else if (outputTab === 'Quiz' && quizContainerRef.current) {
+            quizContainerRef.current.scrollTop = quizContainerRef.current.scrollHeight;
+        }
+    }, [transcript, summary, qnaText, outputTab]);
+
+    // Scroll to top when streaming completes
+    useEffect(() => {
+        if (isTranscriptComplete) {
+            if (outputTab === 'Transcript' && transcriptContainerRef.current) {
+                transcriptContainerRef.current.scrollTop = 0;
+            } else if (outputTab === 'Notes' && summaryContainerRef.current) {
+                summaryContainerRef.current.scrollTop = 0;
+            } else if (outputTab === 'Quiz' && quizContainerRef.current) {
+                quizContainerRef.current.scrollTop = 0;
+            }
+        }
+    }, [isTranscriptComplete, outputTab]);
 
     return (
         <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-sans flex justify-center`}>
@@ -515,13 +552,29 @@ export default function MainApp({ theme, toggleTheme }) {
                                     value={url}
                                     onChange={e => setUrl(e.target.value)}
                                     onKeyDown={e => {
-                                        if (e.key === 'Enter') handleGetTranscript();
-                                    }}
+                                        if (e.key === 'Enter') {
+                                          const embed = getEmbedUrl(url);
+                                          if (embed) {
+                                            setEmbedUrl(embed);
+                                            handleGetTranscript();
+                                          } else {
+                                            alert('Invalid URL!');
+                                          }
+                                        }
+                                      }}
                                     aria-label={`Enter ${inputTab} URL`}
                                 />
                                 <button
                                     className={`font-semibold px-5 py-3 rounded-xl shadow-sm transition-all duration-300 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                    onClick={handleGetTranscript}
+                                    onClick={() => {
+                                        const embed = getEmbedUrl(url);
+                                        if (embed) {
+                                            setEmbedUrl(embed);
+                                            handleGetTranscript();
+                                        } else {
+                                            alert('Invalid URL!');
+                                        }
+                                    }}
                                     aria-label="Analyze input"
                                 >
                                     Analyze
@@ -588,8 +641,46 @@ export default function MainApp({ theme, toggleTheme }) {
                         )}
                     </div>
                     <div className="flex flex-col md:flex-row gap-4 h-[calc(100vh-20rem)] sm:h-[calc(100vh-22rem)] mt-6">
-                        <div className={`w-full md:w-3/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'} overflow-auto custom-scrollbar h-full`}>
-                            <div className="flex flex-wrap gap-3 items-center mb-4">
+                        <div
+                            className={`w-full md:w-3/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}
+                            style={{ maxHeight: '70vh', minHeight: 0, flexBasis: 0, flexGrow: 1 }}
+                        >
+                            <div
+                                id="output-container"
+                                className="flex-1 min-h-0 rounded-xl p-6 shadow-inner text-base prose max-w-none bg-opacity-50 transition-all duration-300"
+                                style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '60vh' }}
+                            >
+                                {topicTitle && <h2 className="topic-title">Topic: {topicTitle}</h2>}
+                                {outputTab === 'Transcript' && (
+                                    <p
+                                        id="transcript-content"
+                                        ref={transcriptContainerRef}
+                                        className={`whitespace-pre-wrap text-lg ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
+                                        style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '50vh' }}
+                                    >
+                                        {transcript || 'Your transcript will appear here once processed.'}
+                                    </p>
+                                )}
+                                {outputTab === 'Notes' && summary && (
+                                    <div
+                                        id="notes-content"
+                                        ref={summaryContainerRef}
+                                        style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '50vh' }}
+                                    >
+                                        <MarkdownSummary summary={summary} theme={theme} />
+                                    </div>
+                                )}
+                                {outputTab === 'Quiz' && qnaText && (
+                                    <div
+                                        id="quiz-content"
+                                        ref={quizContainerRef}
+                                        style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '50vh' }}
+                                    >
+                                        <QuizPanel qnaText={qnaText} theme={theme} />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="flex flex-wrap gap-3 items-center mt-6 mb-4">
                                 {OUTPUT_TABS.map(tab => (
                                     <div key={tab} className="flex items-center gap-2">
                                         <button
@@ -645,121 +736,19 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </span>
                                             )}
                                         </div>
-                                        {(outputTab === 'Notes' || outputTab === 'Quiz') && (
-                                            <button
-                                                onClick={() => handleRefresh(outputTab)}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                title={`Refresh ${outputTab}`}
-                                                aria-label={`Refresh ${outputTab}`}
-                                            >
-                                                🔄 Refresh
-                                            </button>
-                                        )}
+                                        <button
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            onClick={() => handleRefresh(outputTab)}
+                                            title={`Refresh ${outputTab}`}
+                                            aria-label={`Refresh ${outputTab}`}
+                                        >
+                                            🔄 Refresh
+                                        </button>
                                     </>
                                 ) : null}
                             </div>
-                            <div className="flex-1 overflow-auto rounded-xl p-6 shadow-inner text-base prose max-w-none custom-scrollbar bg-opacity-50 transition-all duration-300" id="output-container">
-                                {topicTitle && <h2 className="topic-title">{topicTitle}</h2>}
-                                {outputTab === 'Transcript' && (
-                                    <p id="transcript-content" className={`whitespace-pre-wrap text-lg ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
-                                        {transcript || 'Your transcript will appear here once processed.'}
-                                    </p>
-                                )}
-                                {outputTab === 'Notes' && summary && (() => {
-                                    const cleanedSummary = summary.replace(/^#{1,6}\s*$/gm, '');
-                                    return (
-                                        <div id="notes-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'} text-lg`}>
-                                            <ReactMarkdown
-                                                remarkPlugins={[remarkMath]}
-                                                rehypePlugins={[rehypeKatex]}
-                                                components={{
-                                                    h1: ({ node, children, ...props }) =>
-                                                        children && children.length > 0 ? (
-                                                            <h1
-                                                                className={`text-3xl font-bold relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
-                                                                {...props}
-                                                            >
-                                                                {children}
-                                                            </h1>
-                                                        ) : null,
-                                                    h2: ({ node, children, ...props }) =>
-                                                        children && children.length > 0 ? (
-                                                            <h2
-                                                                className={`text-2xl font-semibold relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
-                                                                {...props}
-                                                            >
-                                                                {children}
-                                                            </h2>
-                                                        ) : null,
-                                                    h3: ({ node, children, ...props }) =>
-                                                        children && children.length > 0 ? (
-                                                            <h3
-                                                                className={`text-xl font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
-                                                                {...props}
-                                                            >
-                                                                {children}
-                                                            </h3>
-                                                        ) : null,
-                                                    h4: ({ node, children, ...props }) =>
-                                                        children && children.length > 0 ? (
-                                                            <h4
-                                                                className={`text-lg font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
-                                                                {...props}
-                                                            >
-                                                                {children}
-                                                            </h4>
-                                                        ) : null,
-                                                    h5: ({ node, children, ...props }) =>
-                                                        children && children.length > 0 ? (
-                                                            <h5
-                                                                className={`text-base font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
-                                                                {...props}
-                                                            >
-                                                                {children}
-                                                            </h5>
-                                                        ) : null,
-                                                    h6: ({ node, children, ...props }) =>
-                                                        children && children.length > 0 ? (
-                                                            <h6
-                                                                className={`text-sm font-medium relative p-2 mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} rounded-lg before:content-[''] before:absolute before:left-0 before:top-0 before:h-full before:w-1 before:bg-purple-500 before:rounded-l-lg before:transition-all before:duration-300 ${theme === 'dark' ? 'before:bg-purple-500' : 'before:bg-purple-400'}`}
-                                                                {...props}
-                                                            >
-                                                                {children}
-                                                            </h6>
-                                                        ) : null,
-                                                    p: ({ node, children, ...props }) =>
-                                                        <p className={`mb-4 leading-relaxed ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</p>,
-                                                    ul: ({ node, children, ...props }) =>
-                                                        <ul className={`list-disc pl-6 mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ul>,
-                                                    ol: ({ node, children, ...props }) =>
-                                                        <ol className={`list-decimal pl-6 mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ol>,
-                                                    li: ({ node, children, ...props }) =>
-                                                        <li className={`mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</li>,
-                                                    code: ({ node, inline, children, ...props }) =>
-                                                        inline ? (
-                                                            <code className={`bg-gray-800 text-purple-300 px-1 rounded ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</code>
-                                                        ) : (
-                                                            <pre className={`bg-gray-800 border border-gray-700 p-4 rounded-lg mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>
-                                                                <code>{children}</code>
-                                                            </pre>
-                                                        ),
-                                                    strong: ({ node, children, ...props }) =>
-                                                        <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} font-semibold`} {...props}>{children}</strong>,
-                                                }}
-                                            >
-                                                {cleanedSummary}
-                                            </ReactMarkdown>
-                                        </div>
-                                    );
-                                })()}
-                                {outputTab === 'Quiz' && qnaText && (
-                                    <div id="quiz-content" className={`text-base ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
-                                        {renderQna()}
-                                    </div>
-                                )}
-                            </div>
                         </div>
-                        <div className={`w-full md:w-2/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'} overflow-auto custom-scrollbar h-full`}>
+                        <div className={`w-full md:w-2/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
                             <div className="flex gap-3 mb-4">
                                 {transcript && (
                                     <button
@@ -783,134 +772,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                 </button>
                             </div>
                             <div className="min-h-0">
-                                {rightPanelTab === 'Video' && transcript && (
-                                    <div className={`w-full ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-xl p-4 flex flex-col gap-4`}>
-                                        <h2 className={`text-lg font-semibold mb-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>Video</h2>
-                                        <div className="relative w-full aspect-video">
-                                            <iframe
-                                                className="absolute top-0 left-0 w-full h-full rounded-lg"
-                                                src={embedUrl}
-                                                frameBorder="0"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                allowFullScreen
-                                                title="Embedded Video"
-                                            />
-                                        </div>
-                                        <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-                                            <p>{videoSummary || 'Loading summary...'}</p>
-                                        </div>
-                                    </div>
+                                {rightPanelTab === 'Video' && embedUrl && (
+                                    <VideoPanel theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                 )}
                                 {rightPanelTab === 'Chat' && (
-                                    <div className={`w-full min-h-0 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-xl p-4 flex flex-col`}>
-                                        <div className="relative flex-shrink-0">
-                                            <div className="flex gap-3 mb-2">
-                                                <input
-                                                    className={`flex-1 h-12 px-5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'}`}
-                                                    placeholder="💡 Ask anything or choose from the list below ..."
-                                                    value={chatInput}
-                                                    ref={inputRef}
-                                                    onChange={e => {
-                                                        const value = e.target.value;
-                                                        setChatInput(value);
-                                                        setShowDropdown(value.trim() === '');
-                                                    }}
-                                                    onFocus={() => {
-                                                        if (!chatInput.trim()) setShowDropdown(true);
-                                                    }}
-                                                    onBlur={() => setTimeout(() => setShowDropdown(false), 200)}
-                                                    onKeyDown={e => {
-                                                        if (e.key === 'Enter') {
-                                                            handleChatSubmit();
-                                                            setShowDropdown(false);
-                                                        }
-                                                    }}
-                                                    aria-label="Ask a question about the content"
-                                                />
-                                                <button
-                                                    disabled={!chatInput.trim()}
-                                                    className={`h-12 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${chatInput.trim()
-                                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600'}`
-                                                        : `${theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed'}`}`}
-                                                    onClick={handleChatSubmit}
-                                                    aria-label="Submit question"
-                                                >
-                                                    Send
-                                                </button>
-                                            </div>
-                                            {showDropdown && suggestedData.length > 0 && (
-                                                <div className="absolute z-20 w-full max-h-64 overflow-auto shadow-xl rounded-xl mt-1 glassmorphism" style={{ top: '100%' }}>
-                                                    <div className={`${theme === 'dark' ? 'bg-gray-800/70 border-gray-700' : 'bg-white/70 border-gray-300'} animate-fade-in`}>
-                                                        {suggestedData.map((item, idx) => (
-                                                            <div key={idx} className={`border-b px-4 py-3 transition-all duration-200 hover:bg-purple-500/20 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
-                                                                <div
-                                                                    className={`font-semibold cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-purple-600'}`}
-                                                                    onClick={() => setChatInput(item.topic)}
-                                                                    role="button"
-                                                                    tabIndex={0}
-                                                                    onKeyDown={e => { if (e.key === 'Enter') setChatInput(item.topic); }}
-                                                                >
-                                                                    {item.topic}
-                                                                </div>
-                                                                <div
-                                                                    className={`pl-4 text-sm cursor-pointer hover:underline ${theme === 'dark' ? 'text-gray-100' : 'text-gray-600'}`}
-                                                                    onClick={() => setChatInput(item.question)}
-                                                                    role="button"
-                                                                    tabIndex={0}
-                                                                    onKeyDown={e => { if (e.key === 'Enter') setChatInput(item.question); }}
-                                                                >
-                                                                    {item.question}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div className="flex-1 overflow-y-auto rounded-xl p-4 shadow-inner custom-scrollbar" ref={chatContainerRef}>
-                                            {chatLoading && (
-                                                <div className={`text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-4`}>Loading response...</div>
-                                            )}
-                                            {(() => {
-                                                const grouped = [];
-                                                for (let i = 0; i < chatHistory.length; i += 2) {
-                                                    const userMsg = chatHistory[i];
-                                                    const botMsg = chatHistory[i + 1];
-                                                    if (userMsg && botMsg) {
-                                                        grouped.push({ userMsg, botMsg });
-                                                    }
-                                                }
-                                                return grouped.reverse().map((pair, index) => (
-                                                    <div key={index} className="mb-4">
-                                                        {pair.userMsg && (
-                                                            <div className={`text-right px-4 py-2 rounded-lg mb-1 inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
-                                                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
-                                                                    components={{
-                                                                        strong: ({ node, children, ...props }) =>
-                                                                            <strong className={`${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</strong>,
-                                                                    }}
-                                                                >
-                                                                    {pair.userMsg.content}
-                                                                </ReactMarkdown>
-                                                            </div>
-                                                        )}
-                                                        {pair.botMsg && (
-                                                            <div className={`text-left px-4 py-2 rounded-lg inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
-                                                                <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
-                                                                    components={{
-                                                                        strong: ({ node, children, ...props }) =>
-                                                                            <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>{children}</strong>,
-                                                                    }}
-                                                                >
-                                                                    {pair.botMsg.content}
-                                                                </ReactMarkdown>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ));
-                                            })()}
-                                        </div>
-                                    </div>
+                                    <ChatPanel
+                                        theme={theme}
+                                        chatInput={chatInput}
+                                        setChatInput={setChatInput}
+                                        handleChatSubmit={handleChatSubmit}
+                                        showDropdown={showDropdown}
+                                        setShowDropdown={setShowDropdown}
+                                        suggestedData={suggestedData}
+                                        inputRef={inputRef}
+                                        chatContainerRef={chatContainerRef}
+                                        chatHistory={chatHistory}
+                                        chatLoading={chatLoading}
+                                    />
                                 )}
                             </div>
                         </div>

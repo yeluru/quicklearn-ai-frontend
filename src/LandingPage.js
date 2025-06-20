@@ -23,6 +23,7 @@ function LandingPage({ theme, toggleTheme, onStart }) {
         <section className="flex flex-col items-center justify-center text-center mb-4 flex-shrink-0">
           <h1 className={`text-5xl md:text-6xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} mb-2`}>Supercharge Your Learning with AI</h1>
           <p className={`text-lg md:text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4 max-w-xl`}>Transform videos, audio, text, or files into transcripts, notes, and quizzes in seconds!</p>
+          <br />
           <button
             onClick={onStart}
             className={`px-6 py-3 rounded-xl text-base font-semibold ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} transition-all duration-300 transform hover:scale-105`}
@@ -30,7 +31,7 @@ function LandingPage({ theme, toggleTheme, onStart }) {
             Dive In Now!
           </button>
           <br />
-          <br />
+
         </section>
 
         {/* Features Section with Widgets */}

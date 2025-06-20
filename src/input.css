@@ -63,3 +63,35 @@
 .dark .topic-title {
   color: #e5e7eb; /* gray-200 */
 }
+
+/* Thinner, slick scrollbar for scrollable panels */
+.custom-scrollbar,
+#transcript-content,
+#notes-content,
+#quiz-content {
+  scrollbar-width: thin;
+  scrollbar-color: #a78bfa #e5e7eb; /* purple-400 on gray-200 */
+}
+
+.custom-scrollbar::-webkit-scrollbar,
+#transcript-content::-webkit-scrollbar,
+#notes-content::-webkit-scrollbar,
+#quiz-content::-webkit-scrollbar {
+  width: 3px;
+  background: #e5e7eb;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb,
+#transcript-content::-webkit-scrollbar-thumb,
+#notes-content::-webkit-scrollbar-thumb,
+#quiz-content::-webkit-scrollbar-thumb {
+  background: #a78bfa;
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover,
+#transcript-content::-webkit-scrollbar-thumb:hover,
+#notes-content::-webkit-scrollbar-thumb:hover,
+#quiz-content::-webkit-scrollbar-thumb:hover {
+  background: #7c3aed;
+}
