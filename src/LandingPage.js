@@ -21,7 +21,7 @@ function LandingPage({ theme, toggleTheme, onStart }) {
       <main className="flex flex-col items-center h-[calc(100vh-96px)] px-4 pt-2 pb-4 mb-8">
         {/* Hero Section */}
         <section className="flex flex-col items-center justify-center text-center mb-4 flex-shrink-0">
-          <h1 className={`text-5xl md:text-6xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} mb-2`}>Supercharge Your Learning with AI</h1>
+          <h1 className={`text-4xl md:text-5xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} mb-2`}>Supercharge Your Learning with AI</h1>
           <p className={`text-lg md:text-xl ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} mb-4 max-w-xl`}>Transform videos, audio, text, or files into transcripts, notes, and quizzes in seconds!</p>
           <br />
           <button

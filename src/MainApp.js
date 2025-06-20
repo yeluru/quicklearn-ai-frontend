@@ -9,7 +9,7 @@ import QuizPanel from './components/QuizPanel';
 import MarkdownSummary from './components/MarkdownSummary';
 
 const INPUT_TABS = ['Video', 'Audio', 'Text', 'File'];
-const OUTPUT_TABS = ['Transcript', 'Notes', 'Quiz'];
+const OUTPUT_TABS = ['Transcript', 'Notes'];
 
 export default function MainApp({ theme, toggleTheme }) {
     const [inputTab, setInputTab] = useState('Video');
@@ -511,6 +511,15 @@ export default function MainApp({ theme, toggleTheme }) {
         }
     }, [isTranscriptComplete, outputTab]);
 
+    // Add useEffect to trigger quiz endpoint when rightPanelTab is 'Quiz'
+    useEffect(() => {
+        if (rightPanelTab === 'Quiz' && transcript && !qnaText) {
+            streamOutput('qna');
+        }
+        // Optionally, refresh quiz if transcript changes
+        // eslint-disable-next-line
+    }, [rightPanelTab, transcript]);
+
     return (
         <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-sans flex justify-center`}>
             <div className={`min-h-[calc(100vh-2rem)] ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} px-4 sm:px-6 lg:px-8 py-6 w-[90%]`}>
@@ -762,6 +771,15 @@ export default function MainApp({ theme, toggleTheme }) {
                                     </button>
                                 )}
                                 <button
+                                    onClick={() => setRightPanelTab('Quiz')}
+                                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Quiz'
+                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                                        : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`}`}
+                                    aria-label="Switch to Quiz tab"
+                                >
+                                    Quiz
+                                </button>
+                                <button
                                     onClick={() => setRightPanelTab('Chat')}
                                     className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Chat'
                                         ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
@@ -771,9 +789,53 @@ export default function MainApp({ theme, toggleTheme }) {
                                     Chat
                                 </button>
                             </div>
-                            <div className="min-h-0">
+                            <div className="min-h-0 flex-1 flex flex-col">
                                 {rightPanelTab === 'Video' && embedUrl && (
                                     <VideoPanel theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
+                                )}
+                                {rightPanelTab === 'Quiz' && qnaText && (
+                                    <div className={`flex flex-col h-full max-h-[50vh] overflow-y-auto custom-scrollbar rounded-xl p-2 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'}`}
+                                         style={{ minHeight: 0 }}>
+                                        {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                            // Improved Q&A parsing
+                                            let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                            let question = '';
+                                            let answer = '';
+                                            if (lines.length > 0) {
+                                                const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                if (qIdx !== -1) {
+                                                    question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                } else {
+                                                    question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                }
+                                                // If answer contains a new question marker, split and keep only the first part
+                                                const nextQIdx = answer.indexOf('###');
+                                                if (nextQIdx !== -1) {
+                                                    answer = answer.slice(0, nextQIdx).trim();
+                                                }
+                                            }
+                                            // Filter out junk questions (empty, only hashes, or whitespace)
+                                            const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                            if (isJunkQuestion && !answer) return null;
+                                            if (isJunkQuestion) question = '';
+                                            if (!question && !answer) return null;
+                                            return (
+                                                <div key={idx} className="mb-4 flex flex-col w-full animate-fade-in">
+                                                    <div className="flex flex-col w-full max-w-full">
+                                                        {question && (
+                                                            <div className={`px-4 py-2 rounded-t-lg rounded-br-lg w-full max-w-full text-sm font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
+                                                                 style={{ fontWeight: 800 }}>{question}</div>
+                                                        )}
+                                                        {answer && (
+                                                            <div className={`px-4 py-2 rounded-b-lg rounded-tl-lg w-full max-w-full text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
                                 )}
                                 {rightPanelTab === 'Chat' && (
                                     <ChatPanel

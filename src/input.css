@@ -31,19 +31,27 @@
 }
 
 .glassmorphism {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  border-radius: 1.5rem;
+  border: 1.5px solid rgba(180, 150, 255, 0.18);
+  transition: box-shadow 0.3s, background 0.3s;
+}
+.dark .glassmorphism {
+  background: rgba(36, 18, 60, 0.55);
+  box-shadow: 0 8px 32px 0 rgba(80, 40, 180, 0.18);
+  border: 1.5px solid rgba(120, 80, 255, 0.18);
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
+  animation: fadeIn 0.7s cubic-bezier(0.4,0,0.2,1);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
 }
 
 @media (max-width: 768px) {
@@ -70,28 +78,128 @@
 #notes-content,
 #quiz-content {
   scrollbar-width: thin;
-  scrollbar-color: #a78bfa #e5e7eb; /* purple-400 on gray-200 */
+  scrollbar-color: #a78bfa #e0e7ff;
 }
 
-.custom-scrollbar::-webkit-scrollbar,
-#transcript-content::-webkit-scrollbar,
-#notes-content::-webkit-scrollbar,
-#quiz-content::-webkit-scrollbar {
-  width: 3px;
-  background: #e5e7eb;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb,
-#transcript-content::-webkit-scrollbar-thumb,
-#notes-content::-webkit-scrollbar-thumb,
-#quiz-content::-webkit-scrollbar-thumb {
-  background: #a78bfa;
-  border-radius: 4px;
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-.custom-scrollbar::-webkit-scrollbar-thumb:hover,
-#transcript-content::-webkit-scrollbar-thumb:hover,
-#notes-content::-webkit-scrollbar-thumb:hover,
-#quiz-content::-webkit-scrollbar-thumb:hover {
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(120deg, #a78bfa 30%, #c4b5fd 100%);
+  border-radius: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #7c3aed;
+}
+
+/* --- Card/Panel Shadow & Border --- */
+.premium-card {
+  background: rgba(255,255,255,0.92);
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 24px 0 rgba(80, 40, 180, 0.10);
+  border: 1px solid rgba(180, 150, 255, 0.10);
+  padding: 2rem;
+  transition: box-shadow 0.3s, background 0.3s;
+}
+.dark .premium-card {
+  background: rgba(36, 18, 60, 0.85);
+  box-shadow: 0 4px 24px 0 rgba(80, 40, 180, 0.18);
+  border: 1px solid rgba(120, 80, 255, 0.10);
+}
+
+/* --- Button Glow/Transition --- */
+button, .btn {
+  transition: box-shadow 0.2s, background 0.2s, color 0.2s, transform 0.2s;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+button:hover, .btn:hover {
+  box-shadow: 0 2px 12px 0 rgba(168, 139, 250, 0.18), 0 1.5px 6px 0 rgba(80, 40, 180, 0.10);
+  transform: translateY(-2px) scale(1.03);
+}
+
+/* --- Input/Focus Glow --- */
+input, textarea, select {
+  border-radius: 0.75rem;
+  border: 1.5px solid #e0e7ff;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 2px #a78bfa33;
+}
+.dark input, .dark textarea, .dark select {
+  border: 1.5px solid #312e81;
+  background: #18122b;
+  color: #e0e7ff;
+}
+.dark input:focus, .dark textarea:focus, .dark select:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 2px #a78bfa33;
+}
+
+/* --- Typography & Spacing --- */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+button, .btn {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  font-weight: 700;
+}
+.card-title, .topic-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Layout Utilities --- */
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.flex-col-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.responsive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: inherit;
+}
+
+/* --- Responsive Card Panel --- */
+@media (max-width: 900px) {
+  .premium-card, .glassmorphism {
+    padding: 1rem;
+    border-radius: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .premium-card, .glassmorphism {
+    padding: 0.5rem;
+    border-radius: 0.75rem;
+  }
+  .responsive-grid {
+    gap: 1rem;
+  }
 }
