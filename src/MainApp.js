@@ -27,6 +27,7 @@ export default function MainApp({ theme, toggleTheme }) {
     const [topicTitle, setTopicTitle] = useState('QuickLearn');
     const [chatLoading, setChatLoading] = useState(false);
     const [copied, setCopied] = useState(false);
+    const [copiedPanel, setCopiedPanel] = useState('');
     const [chatHistory, setChatHistory] = useState([]);
     const [suggestedData, setSuggestedData] = useState([]);
     const [showDropdown, setShowDropdown] = useState(false);
@@ -44,6 +45,7 @@ export default function MainApp({ theme, toggleTheme }) {
     const transcriptContainerRef = useRef(null);
     const summaryContainerRef = useRef(null);
     const quizContainerRef = useRef(null);
+    const [transcriptSegments, setTranscriptSegments] = useState([]);
 
     useEffect(() => {
         // Removed auto-focus
@@ -129,6 +131,7 @@ export default function MainApp({ theme, toggleTheme }) {
                 })
             ]);
             setCopied(true);
+            setCopiedPanel('left');
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             const range = document.createRange();
@@ -141,6 +144,7 @@ export default function MainApp({ theme, toggleTheme }) {
                 const success = document.execCommand('copy');
                 if (success) {
                     setCopied(true);
+                    setCopiedPanel('left');
                     setTimeout(() => setCopied(false), 2000);
                 } else throw new Error();
             } catch {
@@ -150,9 +154,181 @@ export default function MainApp({ theme, toggleTheme }) {
         }
     };
 
+    const copyRightQuizContent = async () => {
+        const el = document.getElementById('right-quiz-content');
+        if (!el) return;
+        try {
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'text/plain': new Blob([el.innerText], { type: 'text/plain' }),
+                    'text/html': new Blob([el.innerHTML], { type: 'text/html' })
+                })
+            ]);
+            setCopied(true);
+            setCopiedPanel('right');
+            setTimeout(() => setCopied(false), 2000);
+        } catch (err) {
+            const range = document.createRange();
+            range.selectNodeContents(el);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                const success = document.execCommand('copy');
+                if (success) {
+                    setCopied(true);
+                    setCopiedPanel('right');
+                    setTimeout(() => setCopied(false), 2000);
+                } else throw new Error();
+            } catch {
+                alert("❌ Failed to copy. Try Ctrl+C manually.");
+            }
+            selection.removeAllRanges();
+        }
+    };
+
+    // Helper to format seconds as hh:mm:ss or mm:ss
+    function formatTime(seconds) {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        return h > 0
+            ? `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`
+            : `${m}:${s.toString().padStart(2, '0')}`;
+    }
+
+    // Seek the YouTube player to a given time (in seconds)
+    function seekTo(seconds) {
+        if (window.player && typeof window.player.seekTo === 'function') {
+            window.player.seekTo(seconds, true);
+        }
+    }
+
+    // Fetch transcript segments for YouTube videos
+    const fetchTranscriptSegments = async (videoUrl) => {
+        setLoading(true);
+        setTranscriptSegments([]);
+        setTranscript("");
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/transcript/segments?url=${encodeURIComponent(videoUrl)}`);
+            const contentType = response.headers.get('content-type') || '';
+            let isStream = contentType.includes('text/event-stream');
+            let isJson = contentType.includes('application/json');
+            if (isStream) {
+                // Streaming mode - append chunks in real-time
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                let done = false;
+                while (!done) {
+                    const { value, done: isDone } = await reader.read();
+                    if (value) {
+                        const chunk = decoder.decode(value);
+                        chunk.split(/\n\n+/).forEach(line => {
+                            if (line.trim().startsWith('data:')) {
+                                try {
+                                    const data = JSON.parse(line.replace(/^data:\s*/, ''));
+                                    if (data.segments && data.segments.length > 0) {
+                                        setTranscriptSegments(data.segments);
+                                        setTranscript(data.segments.map(seg => seg.text).join(' '));
+                                    } else if (data.transcript) {
+                                        setTranscriptSegments([]);
+                                        setTranscript(data.transcript);
+                                    } else if (data.type === 'transcript_chunk' && data.content) {
+                                        // Stream transcript chunks in real-time like Summary/Notes
+                                        setTranscript(prev => prev + data.content + '\n');
+                                    } else if (data.type === 'segments' && data.segments) {
+                                        // Handle timestamped segments
+                                        setTranscriptSegments(data.segments);
+                                        setTranscript(data.segments.map(seg => seg.text).join(' '));
+                                    } else if (data.type === 'complete') {
+                                        setIsTranscriptComplete(true);
+                                    } else if (data.type === 'error') {
+                                        alert(data.message || 'Failed to fetch transcript segments.');
+                                        setTranscriptSegments([]);
+                                        setTranscript('');
+                                    }
+                                } catch (e) {
+                                    // Ignore parse errors for incomplete chunks
+                                }
+                            }
+                        });
+                    }
+                    done = isDone;
+                }
+                setIsTranscriptComplete(true);
+            } else {
+                // Try to parse as JSON
+                try {
+                    const data = await response.json();
+                    if (data.segments && data.segments.length > 0) {
+                        setTranscriptSegments(data.segments);
+                        setTranscript(data.segments.map(seg => seg.text).join(' '));
+                    } else if (data.transcript) {
+                        setTranscriptSegments([]);
+                        setTranscript(data.transcript);
+                    } else {
+                        setTranscriptSegments([]);
+                        setTranscript('');
+                    }
+                    setIsTranscriptComplete(true);
+                } catch (jsonErr) {
+                    // If JSON parsing fails, fallback to streaming parser
+                    try {
+                        const reader = response.body.getReader();
+                        const decoder = new TextDecoder('utf-8');
+                        let done = false;
+                        while (!done) {
+                            const { value, done: isDone } = await reader.read();
+                            if (value) {
+                                const chunk = decoder.decode(value);
+                                chunk.split(/\n\n+/).forEach(line => {
+                                    if (line.trim().startsWith('data:')) {
+                                        try {
+                                            const data = JSON.parse(line.replace(/^data:\s*/, ''));
+                                            if (data.segments && data.segments.length > 0) {
+                                                setTranscriptSegments(data.segments);
+                                                setTranscript(data.segments.map(seg => seg.text).join(' '));
+                                            } else if (data.transcript) {
+                                                setTranscriptSegments([]);
+                                                setTranscript(data.transcript);
+                                            } else if (data.type === 'transcript_chunk' && data.content) {
+                                                // Stream transcript chunks in real-time like Summary/Notes
+                                                setTranscript(prev => prev + data.content + '\n');
+                                            } else if (data.type === 'complete') {
+                                                setIsTranscriptComplete(true);
+                                            } else if (data.type === 'error') {
+                                                alert(data.message || 'Failed to fetch transcript segments.');
+                                                setTranscriptSegments([]);
+                                                setTranscript('');
+                                            }
+                                        } catch (e) {
+                                            // Ignore parse errors for incomplete chunks
+                                        }
+                                    }
+                                });
+                            }
+                            done = isDone;
+                        }
+                        setIsTranscriptComplete(true);
+                    } catch (streamErr) {
+                        alert('Failed to fetch transcript segments.');
+                        setTranscriptSegments([]);
+                        setTranscript('');
+                    }
+                }
+            }
+        } catch (err) {
+            alert('Failed to fetch transcript segments.');
+            setTranscriptSegments([]);
+            setTranscript('');
+        }
+        setLoading(false);
+    };
+
     const handleGetTranscript = async () => {
         setInputTab('Video');
         setOutputTab('Transcript');
+        setRightPanelTab('Video');
         if (inputTab === 'Text' || inputTab === 'File') {
             setUrl('');
         }
@@ -177,10 +353,9 @@ export default function MainApp({ theme, toggleTheme }) {
         setIsTranscriptComplete(false); // Reset transcript completion
         setVideoSummary(''); // Reset video summary
         setLastVideoId(''); // Reset last video ID
-        suggestionsFetchedRef.current = false; // Reset fetch flag
+        suggestionsFetchedRef.current = false;
 
         try {
-            
             if (inputTab === 'Text') {
                 setTranscript(textInput);
                 setOutputTab('Transcript');
@@ -188,6 +363,7 @@ export default function MainApp({ theme, toggleTheme }) {
                 setLoadingMessage('');
                 setProgress(0);
                 setIsTranscriptComplete(true);
+                setTranscriptSegments([]); // Clear segments for text
                 console.log('Transcript complete:', { source: 'Text', transcriptLength: textInput.length });
                 return;
             }
@@ -212,6 +388,7 @@ export default function MainApp({ theme, toggleTheme }) {
                     setOutputTab('Transcript');
                     setProgress(100);
                     setIsTranscriptComplete(true);
+                    setTranscriptSegments([]); // Clear segments for file
                     console.log('Transcript complete:', { source: 'File', transcriptLength: res.data.transcript.length });
                 } else {
                     alert('No transcript found or failed to extract data.');
@@ -223,86 +400,24 @@ export default function MainApp({ theme, toggleTheme }) {
                 return;
             }
 
-            let endpoint = '/transcript/stream';
-            let normalizedUrl = url;
-            if (inputTab === 'Video') {
-                const matchLive = url.match(/youtube\.com\/live\/([a-zA-Z0-9_-]{11})/);
-                if (matchLive) {
-                    normalizedUrl = `https://www.youtube.com/watch?v=${matchLive[1]}`;
-                }
-            }
-            const requestBody = JSON.stringify({ url: normalizedUrl });
-
-            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: requestBody
-            });
-
-            if (!response.ok) {
-                throw new Error(`Server error: ${response.status}`);
-            }
-
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let done = false;
-            let receivedTranscriptChunk = false;
-            let fullTranscript = '';
-            let title = 'QuickLearn';
-
-            while (!done) {
-                const { value, done: isDone } = await reader.read();
-                if (value) {
-                    const chunk = decoder.decode(value);
-                    const lines = chunk.split('\n').filter(line => line.trim());
-
-                    for (const line of lines) {
-                        if (line.startsWith('data: ')) {
-                            const jsonStr = line.replace('data: ', '');
-                            try {
-                                const data = JSON.parse(jsonStr);
-                                if (data.type === 'title') {
-                                    title = data.content || 'QuickLearn';
-                                } else if (data.type === 'transcript_chunk') {
-                                    setTranscript(prev => prev + data.content + ' ');
-                                    receivedTranscriptChunk = true;
-                                } else if (data.type === 'progress') {
-                                    setProgress(prev => Math.min(prev + 10, 90));
-                                } else if (data.type === 'complete') {
-                                    setTopicTitle(title);
-                                    setProgress(100);
-                                    setIsTranscriptComplete(true);
-                                    console.log('Transcript complete:', { source: 'Video', transcriptLength: transcript.length });
-                                } else if (data.type === 'error') {
-                                    throw new Error(data.message || 'Unknown streaming error');
-                                }
-                            } catch (parseError) {
-                                console.warn('Failed to parse chunk as JSON:', parseError);
-                                setTranscript(prev => prev + chunk.replace('data: ', '') + ' ');
-                            }
-                        }
-                    }
-                }
-                done = isDone;
-            }
-
-            if (receivedTranscriptChunk) {
-                setOutputTab('Transcript');
-            } else {
-                alert('No transcript extracted. Please check the URL and try again.');
+            // For YouTube video, fetch segments
+            if (inputTab === 'Video' && url) {
+                await fetchTranscriptSegments(url);
                 setIsTranscriptComplete(true);
-                console.log('Transcript complete:', { source: 'Video', transcriptLength: 0 });
+                setLoading(false);
+                setLoadingMessage('');
+                setProgress(0);
+                return;
             }
+
+            // fallback for other types (if any)
         } catch (err) {
-            console.error('Transcript streaming error:', err);
-            alert(`Failed to fetch transcript: ${err.message}. Please try again.`);
+            alert('Error extracting transcript.');
             setIsTranscriptComplete(true);
-            console.log('Transcript complete:', { source: 'Video', transcriptLength: 0 });
-        } finally {
-            setLoading(false);
-            setLoadingMessage('');
-            setProgress(0);
         }
+        setLoading(false);
+        setLoadingMessage('');
+        setProgress(0);
     };
 
     const streamOutput = useCallback(async (type, force = false) => {
@@ -540,7 +655,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                 <button
                                     key={tab}
                                     onClick={() => setInputTab(tab)}
-                                    className={`relative px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ease-in-out ${inputTab === tab
+                                    className={`relative px-5 py-2 rounded-lg text-sm font-normal transition-all duration-300 ease-in-out ${inputTab === tab
                                         ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
                                         : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
                                         }`}
@@ -659,16 +774,42 @@ export default function MainApp({ theme, toggleTheme }) {
                                 className="flex-1 min-h-0 rounded-xl p-6 shadow-inner text-base prose max-w-none bg-opacity-50 transition-all duration-300"
                                 style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '60vh' }}
                             >
-                                {topicTitle && <h2 className="topic-title">Topic: {topicTitle}</h2>}
                                 {outputTab === 'Transcript' && (
-                                    <p
+                                    <h2 className="topic-title">Transcript<br></br></h2>
+                                )}
+                                {outputTab === 'Notes' && (
+                                    <h2 className="topic-title">Summary<br></br></h2>
+                                )}
+                                {outputTab === 'Transcript' && (
+                                    <div
                                         id="transcript-content"
                                         ref={transcriptContainerRef}
-                                        className={`whitespace-pre-wrap text-lg ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
-                                        style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '50vh' }}
+                                        className={`whitespace-pre-wrap text-lg custom-scrollbar overflow-y-auto max-h-[50vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
                                     >
-                                        {transcript || 'Your transcript will appear here once processed.'}
-                                    </p>
+                                        {transcriptSegments.length > 0 ? (
+                                            <div>
+                                                {transcriptSegments.map((seg, idx) => (
+                                                    <div key={idx} style={{ marginBottom: 8 }}>
+                                                        <span
+                                                            style={{ color: 'blue', cursor: 'pointer', marginRight: 8 }}
+                                                            onClick={() => seekTo(seg.start)}
+                                                            onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }}
+                                                            role="button"
+                                                            tabIndex={0}
+                                                            aria-label={`Jump to ${formatTime(seg.start)}`}
+                                                        >
+                                                            [{formatTime(seg.start)}]
+                                                        </span>
+                                                        {seg.text}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className={`whitespace-pre-wrap text-lg ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
+                                                {transcript || 'Your transcript will appear here once processed.'}
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
                                 {outputTab === 'Notes' && summary && (
                                     <div
@@ -680,12 +821,50 @@ export default function MainApp({ theme, toggleTheme }) {
                                     </div>
                                 )}
                                 {outputTab === 'Quiz' && qnaText && (
-                                    <div
-                                        id="quiz-content"
-                                        ref={quizContainerRef}
-                                        style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '50vh' }}
-                                    >
-                                        <QuizPanel qnaText={qnaText} theme={theme} />
+                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                        <div
+                                            id="right-quiz-content"
+                                            ref={quizContainerRef}
+                                            className="flex-1 overflow-y-auto custom-scrollbar mb-4"
+                                            style={{ minHeight: 0, maxHeight: '50vh' }}
+                                        >
+                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                                let question = '';
+                                                let answer = '';
+                                                if (lines.length > 0) {
+                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                    if (qIdx !== -1) {
+                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    } else {
+                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    }
+                                                    const nextQIdx = answer.indexOf('###');
+                                                    if (nextQIdx !== -1) {
+                                                        answer = answer.slice(0, nextQIdx).trim();
+                                                    }
+                                                }
+                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                                if (isJunkQuestion && !answer) return null;
+                                                if (isJunkQuestion) question = '';
+                                                if (!question && !answer) return null;
+                                                return (
+                                                    <div key={idx} className="mb-4 flex flex-col w-full animate-fade-in">
+                                                        <div className="flex flex-col w-full max-w-full">
+                                                            {question && (
+                                                                <div className={`px-4 py-2 rounded-t-lg rounded-br-lg w-full max-w-full text-sm font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
+                                                                    style={{ fontWeight: 800 }}>{question}</div>
+                                                            )}
+                                                            {answer && (
+                                                                <div className={`px-4 py-2 rounded-b-lg rounded-tl-lg w-full max-w-full text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -694,7 +873,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                     <div key={tab} className="flex items-center gap-2">
                                         <button
                                             onClick={() => setOutputTab(tab)}
-                                            className={`relative px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
+                                            className={`relative px-5 py-2 rounded-lg text-sm font-normal transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
                                             aria-label={`Select ${tab} output`}
                                         >
                                             {tab}
@@ -704,12 +883,12 @@ export default function MainApp({ theme, toggleTheme }) {
                                         </button>
                                     </div>
                                 ))}
-                                {(outputTab === 'Notes' && summary) || (outputTab === 'Quiz' && qnaText) || (outputTab === 'Transcript' && transcript) ? (
+                                {outputTab === 'Notes' && summary && (
                                     <>
                                         <button
                                             onClick={() => {
-                                                const content = outputTab === 'Notes' ? summary : outputTab === 'Quiz' ? qnaText : transcript;
-                                                const label = outputTab;
+                                                const content = summary;
+                                                const label = 'Notes';
                                                 const topicTitle = transcript.split(" ").slice(0, 4).join("_").replace(/[^a-zA-Z0-9_]/g, "");
                                                 const doc = new jsPDF();
                                                 const lines = doc.splitTextToSize(content, 180);
@@ -724,117 +903,85 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 });
                                                 doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
                                             }}
-                                            className={`ml-auto px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            className={`ml-auto px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                             title="Download PDF"
                                             aria-label="Download as PDF"
                                         >
-                                            ⬇️ PDF
+                                            ⬇️
                                         </button>
-                                        <div className="flex flex-col items-center relative">
-                                            <button
-                                                onClick={copyRenderedContent}
-                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                title="Copy content with formatting"
-                                                aria-label="Copy content"
-                                            >
-                                                📄 Copy
-                                            </button>
-                                            {copied && (
-                                                <span className={`text-xs ${theme === 'dark' ? 'text-green-400' : 'text-green-600'} mt-1 animate-fade-in`}>
-                                                    Copied!
-                                                </span>
-                                            )}
-                                        </div>
                                         <button
-                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                            onClick={() => handleRefresh(outputTab)}
-                                            title={`Refresh ${outputTab}`}
-                                            aria-label={`Refresh ${outputTab}`}
+                                            onClick={copyRenderedContent}
+                                            className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            title="Copy content with formatting"
+                                            aria-label="Copy content"
                                         >
-                                            🔄 Refresh
+                                            📄
                                         </button>
+                                        <button
+                                            className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            onClick={() => handleRefresh('Notes')}
+                                            title={`Refresh Notes`}
+                                            aria-label={`Refresh Notes`}
+                                        >
+                                            🔄
+                                        </button>
+                                        {copied && copiedPanel === 'left' && (
+                                            <span className="ml-2 text-green-400 font-normal animate-fade-in">Copied!</span>
+                                        )}
                                     </>
-                                ) : null}
+                                )}
                             </div>
                         </div>
                         <div className={`w-full md:w-2/5 flex flex-col shadow-2xl rounded-2xl p-6 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
-                            <div className="flex gap-3 mb-4">
-                                {transcript && (
-                                    <button
-                                        onClick={() => setRightPanelTab('Video')}
-                                        className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Video'
-                                            ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                                            : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`}`}
-                                        aria-label="Switch to Video tab"
-                                    >
-                                        Video
-                                    </button>
-                                )}
-                                <button
-                                    onClick={() => setRightPanelTab('Quiz')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Quiz'
-                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                                        : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`}`}
-                                    aria-label="Switch to Quiz tab"
-                                >
-                                    Quiz
-                                </button>
-                                <button
-                                    onClick={() => setRightPanelTab('Chat')}
-                                    className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-300 ${rightPanelTab === 'Chat'
-                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                                        : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`}`}
-                                    aria-label="Switch to Chat tab"
-                                >
-                                    Chat
-                                </button>
-                            </div>
-                            <div className="min-h-0 flex-1 flex flex-col">
+                            <div className="flex flex-col h-full min-h-0" style={{ flex: 1 }}>
                                 {rightPanelTab === 'Video' && embedUrl && (
                                     <VideoPanel theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                 )}
                                 {rightPanelTab === 'Quiz' && qnaText && (
-                                    <div className={`flex flex-col h-full max-h-[50vh] overflow-y-auto custom-scrollbar rounded-xl p-2 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'}`}
-                                         style={{ minHeight: 0 }}>
-                                        {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                            // Improved Q&A parsing
-                                            let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                            let question = '';
-                                            let answer = '';
-                                            if (lines.length > 0) {
-                                                const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                if (qIdx !== -1) {
-                                                    question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                } else {
-                                                    question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                        <div
+                                            id="right-quiz-content"
+                                            ref={quizContainerRef}
+                                            className="flex-1 overflow-y-auto custom-scrollbar mb-4"
+                                            style={{ minHeight: 0, maxHeight: '50vh' }}
+                                        >
+                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                                let question = '';
+                                                let answer = '';
+                                                if (lines.length > 0) {
+                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                    if (qIdx !== -1) {
+                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    } else {
+                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    }
+                                                    const nextQIdx = answer.indexOf('###');
+                                                    if (nextQIdx !== -1) {
+                                                        answer = answer.slice(0, nextQIdx).trim();
+                                                    }
                                                 }
-                                                // If answer contains a new question marker, split and keep only the first part
-                                                const nextQIdx = answer.indexOf('###');
-                                                if (nextQIdx !== -1) {
-                                                    answer = answer.slice(0, nextQIdx).trim();
-                                                }
-                                            }
-                                            // Filter out junk questions (empty, only hashes, or whitespace)
-                                            const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                            if (isJunkQuestion && !answer) return null;
-                                            if (isJunkQuestion) question = '';
-                                            if (!question && !answer) return null;
-                                            return (
-                                                <div key={idx} className="mb-4 flex flex-col w-full animate-fade-in">
-                                                    <div className="flex flex-col w-full max-w-full">
-                                                        {question && (
-                                                            <div className={`px-4 py-2 rounded-t-lg rounded-br-lg w-full max-w-full text-sm font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                 style={{ fontWeight: 800 }}>{question}</div>
-                                                        )}
-                                                        {answer && (
-                                                            <div className={`px-4 py-2 rounded-b-lg rounded-tl-lg w-full max-w-full text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
-                                                        )}
+                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                                if (isJunkQuestion && !answer) return null;
+                                                if (isJunkQuestion) question = '';
+                                                if (!question && !answer) return null;
+                                                return (
+                                                    <div key={idx} className="mb-4 flex flex-col w-full animate-fade-in">
+                                                        <div className="flex flex-col w-full max-w-full">
+                                                            {question && (
+                                                                <div className={`px-4 py-2 rounded-t-lg rounded-br-lg w-full max-w-full text-sm font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
+                                                                    style={{ fontWeight: 800 }}>{question}</div>
+                                                            )}
+                                                            {answer && (
+                                                                <div className={`px-4 py-2 rounded-b-lg rounded-tl-lg w-full max-w-full text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                                 {rightPanelTab === 'Chat' && (
@@ -851,6 +998,74 @@ export default function MainApp({ theme, toggleTheme }) {
                                         chatHistory={chatHistory}
                                         chatLoading={chatLoading}
                                     />
+                                )}
+                            </div>
+                            <div className="flex flex-row items-center justify-between gap-2 mt-6 mb-4 w-full">
+                                {/* Left: Tab buttons */}
+                                <div className="flex gap-2">
+                                    {['Video', 'Quiz', 'Chat'].map(tab => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setRightPanelTab(tab)}
+                                            className={`relative px-5 py-2 rounded-lg text-sm font-normal transition-all duration-300 ease-in-out ${rightPanelTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
+                                            aria-label={`${tab} Tab`}
+                                            disabled={rightPanelTab === tab}
+                                            style={{ minWidth: 100 }}
+                                        >
+                                            {tab}
+                                            {rightPanelTab === tab && (
+                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                {/* Right: Action buttons (only for Quiz) */}
+                                {rightPanelTab === 'Quiz' && qnaText && (
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                const content = qnaText;
+                                                const label = 'Quiz';
+                                                const topicTitle = transcript.split(" ").slice(0, 4).join("_").replace(/[^a-zA-Z0-9_]/g, "");
+                                                const doc = new jsPDF();
+                                                const lines = doc.splitTextToSize(content, 180);
+                                                let y = 10;
+                                                lines.forEach(line => {
+                                                    if (y > 270) {
+                                                        doc.addPage();
+                                                        y = 10;
+                                                    }
+                                                    doc.text(line, 10, y);
+                                                    y += 10;
+                                                });
+                                                doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            title="Download PDF"
+                                            aria-label="Download as PDF"
+                                        >
+                                            ⬇️
+                                        </button>
+                                        <button
+                                            onClick={copyRightQuizContent}
+                                            className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            title="Copy Quiz"
+                                            aria-label="Copy Quiz"
+                                        >
+                                            📄
+                                        </button>
+                                        <button
+                                            onClick={() => handleRefresh('Quiz')}
+                                            className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                            title="Regenerate Quiz"
+                                            aria-label="Regenerate Quiz"
+                                        >
+                                            🔄
+                                        </button>
+                                        {copied && copiedPanel === 'right' && (
+                                            <span className="ml-2 text-green-400 font-normal animate-fade-in self-center">Copied!</span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
                         </div>
