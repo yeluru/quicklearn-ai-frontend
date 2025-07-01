@@ -7,7 +7,7 @@ import Contact from './pages/Contact';
 import Privacy from './pages/Privacy';
 
 function App() {
-  const [theme, setTheme] = useState('dark');
+      const [theme, setTheme] = useState('light');
   const [showLandingPage, setShowLandingPage] = useState(true);
 
   const toggleTheme = () => {
