@@ -17,11 +17,11 @@ export default function ChatPanel({
     chatLoading
 }) {
     return (
-        <div className={`w-full min-h-0 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-xl p-4 flex flex-col`}>
+        <div className={`w-full min-h-0 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-white/50'} rounded-lg p-3 flex flex-col`}>
             <div className="relative flex-shrink-0">
-                <div className="flex gap-3 mb-2">
+                <div className="flex gap-2 mb-2">
                     <input
-                        className={`px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base w-full` + (theme === 'dark' ? ' bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : ' bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500')}
+                        className={`px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full` + (theme === 'dark' ? ' bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : ' bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500')}
                         placeholder="💡 Ask anything or choose from the list below ..."
                         value={chatInput}
                         ref={inputRef}
@@ -44,7 +44,7 @@ export default function ChatPanel({
                     />
                     <button
                         disabled={!chatInput.trim()}
-                        className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${chatInput.trim()
+                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${chatInput.trim()
                             ? (theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600')
                             : (theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed')}`}
                         onClick={handleChatSubmit}
@@ -55,12 +55,12 @@ export default function ChatPanel({
                     </button>
                 </div>
                 {showDropdown && suggestedData.length > 0 && (
-                    <div className="absolute z-20 w-full max-h-64 overflow-auto shadow-xl rounded-xl mt-1 glassmorphism" style={{ top: '100%' }}>
+                    <div className="absolute z-20 w-full max-h-48 overflow-auto shadow-xl rounded-lg mt-1 glassmorphism" style={{ top: '100%' }}>
                         <div className={`${theme === 'dark' ? 'bg-gray-800/70 border-gray-700' : 'bg-white/70 border-gray-300'} animate-fade-in`}>
                             {suggestedData.map((item, idx) => (
-                                <div key={idx} className={`border-b px-4 py-3 transition-all duration-200 hover:bg-purple-500/20 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
+                                <div key={idx} className={`border-b px-3 py-2 transition-all duration-200 hover:bg-purple-500/20 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
                                     <div
-                                        className={`font-semibold cursor-pointer ${theme === 'dark' ? 'text-white' : 'text-purple-600'}`}
+                                        className={`font-semibold cursor-pointer text-xs ${theme === 'dark' ? 'text-white' : 'text-purple-600'}`}
                                         onClick={() => setChatInput(item.topic)}
                                         role="button"
                                         tabIndex={0}
@@ -69,7 +69,7 @@ export default function ChatPanel({
                                         {item.topic}
                                     </div>
                                     <div
-                                        className={`pl-4 text-sm cursor-pointer hover:underline ${theme === 'dark' ? 'text-gray-100' : 'text-gray-600'}`}
+                                        className={`pl-3 text-xs cursor-pointer hover:underline ${theme === 'dark' ? 'text-gray-100' : 'text-gray-600'}`}
                                         onClick={() => setChatInput(item.question)}
                                         role="button"
                                         tabIndex={0}
@@ -83,9 +83,9 @@ export default function ChatPanel({
                     </div>
                 )}
             </div>
-            <div className="flex-1 overflow-y-auto rounded-xl p-4 shadow-inner custom-scrollbar" ref={chatContainerRef}>
+            <div className="flex-1 overflow-y-auto rounded-lg p-3 shadow-inner custom-scrollbar" ref={chatContainerRef}>
                 {chatLoading && (
-                    <div className={`text-center text-sm ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-4`}>Loading response...</div>
+                    <div className={`text-center text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'} mb-3`}>Loading response...</div>
                 )}
                 {(() => {
                     const grouped = [];
@@ -97,9 +97,9 @@ export default function ChatPanel({
                         }
                     }
                     return grouped.reverse().map((pair, index) => (
-                        <div key={index} className="mb-4">
+                        <div key={index} className="mb-3">
                             {pair.userMsg && (
-                                <div className={`text-right px-4 py-2 rounded-lg mb-1 inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
+                                <div className={`text-right px-3 py-1.5 rounded-lg mb-1 inline-block max-w-full prose text-xs ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
                                     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
                                         components={{
                                             strong: ({ node, children, ...props }) =>
@@ -111,7 +111,7 @@ export default function ChatPanel({
                                 </div>
                             )}
                             {pair.botMsg && (
-                                <div className={`text-left px-4 py-2 rounded-lg inline-block max-w-full prose text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
+                                <div className={`text-left px-3 py-1.5 rounded-lg inline-block max-w-full prose text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
                                     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
                                         components={{
                                             strong: ({ node, children, ...props }) =>
