@@ -21,7 +21,7 @@ export default function ChatPanel({
             <div className="relative flex-shrink-0">
                 <div className="flex gap-3 mb-2">
                     <input
-                        className={`flex-1 h-12 px-5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'}`}
+                        className={`px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base w-full` + (theme === 'dark' ? ' bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : ' bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500')}
                         placeholder="💡 Ask anything or choose from the list below ..."
                         value={chatInput}
                         ref={inputRef}
@@ -44,11 +44,12 @@ export default function ChatPanel({
                     />
                     <button
                         disabled={!chatInput.trim()}
-                        className={`h-12 px-6 rounded-xl text-sm font-semibold transition-all duration-300 ${chatInput.trim()
-                            ? `${theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600'}`
-                            : `${theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed'}`}`}
+                        className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${chatInput.trim()
+                            ? (theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600')
+                            : (theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed')}`}
                         onClick={handleChatSubmit}
                         aria-label="Submit question"
+                        style={{ whiteSpace: 'nowrap', height: 'auto' }}
                     >
                         Send
                     </button>

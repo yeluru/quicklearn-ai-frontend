@@ -7,7 +7,7 @@ import ChatPanel from './components/ChatPanel';
 import VideoPanel from './components/VideoPanel';
 import MarkdownSummary from './components/MarkdownSummary';
 
-const INPUT_TABS = ['Video', 'Audio', 'Text', 'File'];
+const INPUT_TABS = ['Video', 'Audio', 'Text', 'File', 'Website'];
 const OUTPUT_TABS = ['Transcript', 'Notes'];
 
 export default function MainApp({ theme, toggleTheme }) {
@@ -43,6 +43,7 @@ export default function MainApp({ theme, toggleTheme }) {
     const [transcriptSegments, setTranscriptSegments] = useState([]);
     const abortControllerRef = useRef(null);
     const [loadingType, setLoadingType] = useState(null); // 'summary' | 'quiz' | 'transcript' | 'chat' | null
+    const [websiteUrl, setWebsiteUrl] = useState('');
 
     // Helper to determine if the current file is a document
     const documentExtensions = ['.pdf', '.docx', '.doc', '.txt'];
@@ -512,24 +513,24 @@ export default function MainApp({ theme, toggleTheme }) {
                 try {
                     abortControllerRef.current = new AbortController();
                     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/transcript/stream`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ url: url }),
                         signal: abortControllerRef.current.signal
-                    });
+            });
 
-                    if (!response.ok) {
+            if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+            }
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder('utf-8');
-                    let done = false;
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let done = false;
 
-                    while (!done) {
-                        const { value, done: isDone } = await reader.read();
-                        if (value) {
-                            const chunk = decoder.decode(value);
+            while (!done) {
+                const { value, done: isDone } = await reader.read();
+                if (value) {
+                    const chunk = decoder.decode(value);
                             chunk.split(/\n\n+/).forEach(line => {
                                 if (line.trim().startsWith('data:')) {
                                     try {
@@ -539,19 +540,19 @@ export default function MainApp({ theme, toggleTheme }) {
                                             setTranscript(prev => prev + data.content + '\n');
                                         } else if (data.type === 'progress' && data.message) {
                                             setLoadingMessage(data.message);
-                                        } else if (data.type === 'complete') {
-                                            setIsTranscriptComplete(true);
-                                        } else if (data.type === 'error') {
+                                } else if (data.type === 'complete') {
+                                    setIsTranscriptComplete(true);
+                                } else if (data.type === 'error') {
                                             alert(data.message || 'Failed to process audio. Please ensure the URL provides direct access to an audio file.');
-                                        }
+                                }
                                     } catch (e) {
                                         // Ignore parse errors for incomplete chunks
-                                    }
-                                }
-                            });
+                            }
                         }
-                        done = isDone;
-                    }
+                            });
+                }
+                done = isDone;
+            }
                 } catch (error) {
                     if (error.name === 'AbortError') return;
                     alert('Failed to process audio. Please try again.');
@@ -567,8 +568,8 @@ export default function MainApp({ theme, toggleTheme }) {
             alert('Error extracting transcript.');
             setIsTranscriptComplete(true);
         }
-        setLoading(false);
-        setLoadingMessage('');
+            setLoading(false);
+            setLoadingMessage('');
     };
 
     const streamOutput = useCallback(async (type, force = false) => {
@@ -754,16 +755,20 @@ export default function MainApp({ theme, toggleTheme }) {
     }, [inputTab, outputTab, file]);
 
     useEffect(() => {
-        setTranscript('');
-        setTranscriptSegments([]);
-        setSummary('');
-        setQnaText('');
-        setIsTranscriptComplete(false);
-        setOutputTab('Transcript');
-        setRightPanelTab(inputTab === 'File' ? 'Chat' : (inputTab === 'Audio' ? 'Chat' : 'Video'));
-        setUrl('');
-        setTextInput('');
-        setFile(null);
+        if (inputTab === 'Website') {
+            setWebsiteUrl('');
+            setTranscript('');
+            setSummary('');
+            setQnaText('');
+            setTranscriptSegments([]);
+            setChatInput('');
+            setChatHistory([]);
+            setSuggestedData([]);
+            setOutputTab('Transcript');
+            setRightPanelTab('Chat');
+            setIsTranscriptComplete(false);
+        }
+        // Optionally, add cleanup for other tabs if needed
     }, [inputTab]);
 
     // Auto-switch to Notes tab for document files
@@ -790,9 +795,79 @@ export default function MainApp({ theme, toggleTheme }) {
         setLoadingType(null);
     };
 
+    // Modularize jsPDF export logic
+    function exportToPDF(content, label, transcript) {
+        const topicTitle = transcript.split(" ").slice(0, 4).join("_").replace(/[^a-zA-Z0-9_]/g, "");
+        const doc = new jsPDF();
+        const lines = doc.splitTextToSize(content, 180);
+        let y = 10;
+        lines.forEach(line => {
+            if (y > 270) {
+                doc.addPage();
+                y = 10;
+            }
+            doc.text(line, 10, y);
+            y += 10;
+        });
+        doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
+    }
 
+    // Add handler for website scraping
+    const handleWebsiteScrape = async () => {
+        if (!websiteUrl.trim()) return;
+        setTranscript('');
+        setSummary('');
+        setQnaText('');
+        setTranscriptSegments([]);
+        setOutputTab('Transcript');
+        setRightPanelTab('Chat');
+        setChatInput('');
+        setChatHistory([]);
+        setSuggestedData([]);
+        setLoading(true);
+        setLoadingMessage('Scraping website...');
+        setIsTranscriptComplete(false);
+        try {
+            const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/scrape`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: websiteUrl.trim() })
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+            }
+            const data = await response.json();
+            setTranscript(data.transcript || 'No content could be scraped from the website.');
+            setIsTranscriptComplete(true);
+        } catch (err) {
+            setTranscript('Error scraping website.');
+            setIsTranscriptComplete(true);
+        } finally {
+            setLoading(false);
+            setLoadingMessage('');
+        }
+    };
 
-
+    useEffect(() => {
+        // Reset all state on tab switch
+        setUrl('');
+        setWebsiteUrl('');
+        setTextInput('');
+        setFile(null);
+        setTranscript('');
+        setSummary('');
+        setQnaText('');
+        setTranscriptSegments([]);
+        setChatInput('');
+        setChatHistory([]);
+        setSuggestedData([]);
+        setOutputTab('Transcript');
+        setRightPanelTab(inputTab === 'Video' ? 'Video' : 'Chat');
+        setIsTranscriptComplete(false);
+        setEmbedUrl('');
+        setVideoSummary('');
+        setLastVideoId('');
+    }, [inputTab]);
 
     return (
         <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-[calc(100vh-2rem)] font-sans flex justify-center`}>
@@ -828,16 +903,15 @@ export default function MainApp({ theme, toggleTheme }) {
                             ))}
                         </div>
                         {inputTab === 'Video' || inputTab === 'Audio' ? (
-                            <div className="flex gap-3">
+                            <div className="flex flex-row gap-2 mt-4 items-center w-full">
                                 <input
-                                    className={`flex-1 px-5 py-3 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'} rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300`}
+                                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base w-full"
                                     placeholder={`Paste a ${inputTab} URL here...${inputTab === 'Audio' ? ' (MP3, WAV, MP4, Spotify, SoundCloud, etc.)' : ''}`}
                                     value={url}
                                     onChange={e => setUrl(e.target.value)}
                                     onKeyDown={e => {
                                         if (e.key === 'Enter') {
                                           if (inputTab === 'Audio') {
-                                            // For Audio tab, check if it's a valid audio URL
                                             if (isAudioFileUrl(url) || isAudioPlatformUrl(url) || isGoogleDriveUrl(url) || getEmbedUrl(url)) {
                                               setEmbedUrl(getEmbedUrl(url) || url);
                                               handleGetTranscript();
@@ -845,7 +919,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                               alert('Invalid audio URL! Please provide a direct audio file URL (MP3, WAV, MP4, etc.), audio platform URL (Spotify, SoundCloud, etc.), or Google Drive link.');
                                             }
                                           } else {
-                                            // For Video tab, use existing logic
                                           const embed = getEmbedUrl(url);
                                           if (embed) {
                                             setEmbedUrl(embed);
@@ -859,10 +932,9 @@ export default function MainApp({ theme, toggleTheme }) {
                                     aria-label={`Enter ${inputTab} URL`}
                                 />
                                 <button
-                                    className={`font-semibold px-5 py-3 rounded-xl shadow-sm transition-all duration-300 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                    className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     onClick={() => {
                                         if (inputTab === 'Audio') {
-                                            // For Audio tab, check if it's a valid audio URL
                                             if (isAudioFileUrl(url) || isAudioPlatformUrl(url) || isGoogleDriveUrl(url) || getEmbedUrl(url)) {
                                                 setEmbedUrl(getEmbedUrl(url) || url);
                                                 handleGetTranscript();
@@ -870,7 +942,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 alert('Invalid audio URL! Please provide a direct audio file URL (MP3, WAV, MP4, etc.), audio platform URL (Spotify, SoundCloud, etc.), or Google Drive link.');
                                             }
                                         } else {
-                                            // For Video tab, use existing logic
                                         const embed = getEmbedUrl(url);
                                         if (embed) {
                                             setEmbedUrl(embed);
@@ -881,61 +952,81 @@ export default function MainApp({ theme, toggleTheme }) {
                                         }
                                     }}
                                     aria-label="Analyze input"
+                                    style={{ whiteSpace: 'nowrap' }}
+                                    disabled={loading || !url.trim()}
                                 >
                                     Analyze
                                 </button>
                             </div>
                         ) : inputTab === 'Text' ? (
-                            <div className="flex flex-row items-center gap-3 w-full">
+                            <div className="flex flex-row gap-2 mt-4 items-center w-full">
                                 <textarea
-                                    className={`flex-1 min-w-0 px-4 py-2 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : 'bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500'} rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300`}
+                                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base w-full"
                                     rows={2}
                                     placeholder="Paste raw text here..."
                                     value={textInput}
                                     onChange={e => setTextInput(e.target.value)}
                                     aria-label="Enter text input"
+                                    style={{ resize: 'vertical' }}
                                 />
-                                <button
-                                    className={`flex-shrink-0 font-semibold px-4 py-2 rounded-xl shadow-sm transition-all duration-300 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                    onClick={handleGetTranscript}
-                                    aria-label="Submit text"
-                                >
-                                    Submit Text
-                                </button>
+                                    <button
+                                    className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        onClick={handleGetTranscript}
+                                        aria-label="Submit text"
+                                    style={{ whiteSpace: 'nowrap' }}
+                                    disabled={loading || !textInput.trim()}
+                                    >
+                                        Submit Text
+                                    </button>
                             </div>
                         ) : inputTab === 'File' && (
-                            <div className="flex gap-3">
+                            <div className="flex flex-row gap-2 mt-4 items-center w-full">
                                 <input
                                     type="file"
                                     accept=".pdf,.doc,.docx,.txt,.mp4,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.aiff"
-                                    className={`flex-1 px-5 py-3 ${theme === 'dark' ? 'bg-gray-800/50 border-gray-700 text-gray-100' : 'bg-white/50 border-gray-300 text-gray-900'} rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-300`}
+                                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base w-full"
                                     onChange={e => {
                                         const selectedFile = e.target.files[0];
                                         setFile(selectedFile);
-                                        // Reset all output state for a fresh panel
                                         setTranscript('');
                                         setTranscriptSegments([]);
                                         setSummary('');
                                         setQnaText('');
                                         setIsTranscriptComplete(false);
                                         setOutputTab('Transcript');
-                                        setRightPanelTab(selectedFile && ['.mp4', '.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.wma', '.aiff'].some(ext => selectedFile.name.toLowerCase().endsWith(ext)) ? 'Chat' : 'Chat');
-                                        // Highlight Transcript tab for audio files
-                                        if (selectedFile) {
-                                            const audioExtensions = ['.mp4', '.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.wma', '.aiff'];
-                                            if (audioExtensions.some(ext => selectedFile.name.toLowerCase().endsWith(ext))) {
-                                                setOutputTab('Transcript');
-                                            }
-                                        }
+                                        setRightPanelTab('Chat');
                                     }}
                                     aria-label="Upload file"
                                 />
                                 <button
-                                    className={`font-semibold px-5 py-3 rounded-xl shadow-sm transition-all duration-300 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                    className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     onClick={handleGetTranscript}
                                     aria-label="Upload and extract"
+                                    style={{ whiteSpace: 'nowrap' }}
+                                    disabled={loading || !file}
                                 >
                                     Upload & Extract
+                                </button>
+                            </div>
+                        )}
+                        {inputTab === 'Website' && (
+                            <div className="flex flex-row gap-2 mt-4 items-center w-full">
+                                <input
+                                    type="text"
+                                    className="px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base w-full"
+                                    placeholder="Enter website URL (e.g. https://example.com)"
+                                    value={websiteUrl}
+                                    onChange={e => setWebsiteUrl(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter' && websiteUrl.trim() && !loading) handleWebsiteScrape(); }}
+                                    disabled={loading}
+                                />
+                                <button
+                                    className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    onClick={handleWebsiteScrape}
+                                    disabled={loading || !websiteUrl.trim()}
+                                    style={{ whiteSpace: 'nowrap' }}
+                                >
+                                    {loading ? 'Scraping...' : 'Submit'}
                                 </button>
                             </div>
                         )}
@@ -1085,19 +1176,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 if (!summary) return;
                                                 const content = summary;
                                                 const label = 'Notes';
-                                                const topicTitle = transcript.split(" ").slice(0, 4).join("_").replace(/[^a-zA-Z0-9_]/g, "");
-                                                const doc = new jsPDF();
-                                                const lines = doc.splitTextToSize(content, 180);
-                                                let y = 10;
-                                                lines.forEach(line => {
-                                                    if (y > 270) {
-                                                        doc.addPage();
-                                                        y = 10;
-                                                    }
-                                                    doc.text(line, 10, y);
-                                                    y += 10;
-                                                });
-                                                doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
+                                                exportToPDF(content, label, transcript);
                                             }}
                                             className={`ml-auto px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title={summary ? 'Download PDF' : 'No summary to download'}
@@ -1106,15 +1185,15 @@ export default function MainApp({ theme, toggleTheme }) {
                                         >
                                             ⬇️
                                         </button>
-                                        <button
-                                            onClick={copyRenderedContent}
+                                            <button
+                                                onClick={copyRenderedContent}
                                             className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title={summary ? 'Copy content with formatting' : 'No summary to copy'}
-                                            aria-label="Copy content"
+                                                aria-label="Copy content"
                                             disabled={!summary}
-                                        >
+                                            >
                                             📄
-                                        </button>
+                                            </button>
                                         <button
                                             className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                             onClick={() => handleRefresh('Notes')}
@@ -1131,24 +1210,12 @@ export default function MainApp({ theme, toggleTheme }) {
                                 {/* Always show action buttons in Transcript panel */}
                                 {outputTab === 'Transcript' && (
                                     <>
-                                        <button
+                                    <button
                                             onClick={() => {
                                                 if (!transcript) return;
                                                 const content = transcript;
                                                 const label = 'Transcript';
-                                                const topicTitle = transcript.split(" ").slice(0, 4).join("_").replace(/[^a-zA-Z0-9_]/g, "");
-                                                const doc = new jsPDF();
-                                                const lines = doc.splitTextToSize(content, 180);
-                                                let y = 10;
-                                                lines.forEach(line => {
-                                                    if (y > 270) {
-                                                        doc.addPage();
-                                                        y = 10;
-                                                    }
-                                                    doc.text(line, 10, y);
-                                                    y += 10;
-                                                });
-                                                doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
+                                                exportToPDF(content, label, transcript);
                                             }}
                                             className={`ml-auto px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title={transcript ? 'Download PDF' : 'No transcript to download'}
@@ -1156,8 +1223,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                             disabled={!transcript}
                                         >
                                             ⬇️
-                                        </button>
-                                        <button
+                                    </button>
+                                <button
                                             onClick={copyRenderedContent}
                                             className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title={transcript ? 'Copy content with formatting' : 'No transcript to copy'}
@@ -1165,15 +1232,15 @@ export default function MainApp({ theme, toggleTheme }) {
                                             disabled={!transcript}
                                         >
                                             📄
-                                        </button>
-                                        <button
+                                </button>
+                                <button
                                             className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                             onClick={() => handleRefresh('Transcript')}
                                             title={`Refresh Transcript`}
                                             aria-label={`Refresh Transcript`}
-                                        >
+                                >
                                             🔄
-                                        </button>
+                                </button>
                                         {copied && copiedPanel === 'left' && (
                                             <span className="ml-2 text-green-400 font-normal animate-fade-in">Copied!</span>
                                         )}
@@ -1253,7 +1320,13 @@ export default function MainApp({ theme, toggleTheme }) {
                                 {/* Left: Tab buttons */}
                                 <div className="flex gap-2">
                                     {/* Show different tabs based on input type */}
-                                    {(inputTab === 'File' || inputTab === 'Audio' || inputTab === 'Text' ? ['Quiz', 'Chat'] : ['Video', 'Quiz', 'Chat']).map(tab => (
+                                    {(
+                                        inputTab === 'File' || inputTab === 'Audio' || inputTab === 'Text'
+                                            ? ['Quiz', 'Chat']
+                                            : inputTab === 'Website'
+                                                ? ['Quiz', 'Chat']
+                                                : ['Video', 'Quiz', 'Chat']
+                                    ).map(tab => (
                                         <button
                                             key={tab}
                                             onClick={() => setRightPanelTab(tab)}
@@ -1268,7 +1341,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             )}
                                         </button>
                                     ))}
-                                </div>
+                        </div>
                                 {/* Quiz action buttons ONLY in right panel, always visible */}
                                 {rightPanelTab === 'Quiz' && (
                                     <div className="flex gap-2">
@@ -1277,19 +1350,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 if (!qnaText) return;
                                                 const content = qnaText;
                                                 const label = 'Quiz';
-                                                const topicTitle = transcript.split(" ").slice(0, 4).join("_").replace(/[^a-zA-Z0-9_]/g, "");
-                                                const doc = new jsPDF();
-                                                const lines = doc.splitTextToSize(content, 180);
-                                                let y = 10;
-                                                lines.forEach(line => {
-                                                    if (y > 270) {
-                                                        doc.addPage();
-                                                        y = 10;
-                                                    }
-                                                    doc.text(line, 10, y);
-                                                    y += 10;
-                                                });
-                                                doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
+                                                exportToPDF(content, label, transcript);
                                             }}
                                             className={`px-4 py-2 rounded-lg text-sm font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             title={qnaText ? 'Download PDF' : 'No quiz to download'}
