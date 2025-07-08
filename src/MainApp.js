@@ -7,11 +7,11 @@ import ChatPanel from './components/ChatPanel';
 import VideoPanel from './components/VideoPanel';
 import MarkdownSummary from './components/MarkdownSummary';
 
-const INPUT_TABS = ['Video', 'Audio', 'Text', 'File', 'Website'];
-const OUTPUT_TABS = ['Transcript', 'Notes'];
+const INPUT_TABS = ['URL', 'Text', 'File'];
+const OUTPUT_TABS = ['Transcript', 'Summary'];
 
 export default function MainApp({ theme, toggleTheme }) {
-    const [inputTab, setInputTab] = useState('Video');
+    const [inputTab, setInputTab] = useState('URL');
     const [outputTab, setOutputTab] = useState('Transcript');
     const [url, setUrl] = useState('');
     const [textInput, setTextInput] = useState('');
@@ -54,7 +54,7 @@ export default function MainApp({ theme, toggleTheme }) {
     }, []);
 
     useEffect(() => {
-        if (transcript && embedUrl && isTranscriptComplete && inputTab === 'Video') {
+        if (transcript && embedUrl && isTranscriptComplete && inputTab === 'URL') {
             const videoId = extractVideoId(embedUrl);
             if (videoId && videoId !== lastVideoId) {
                 const fetchVideoSummary = async () => {
@@ -116,17 +116,15 @@ export default function MainApp({ theme, toggleTheme }) {
     };
 
     const isGoogleDriveUrl = (url) => {
+        if (!url) return false;
         try {
-            if (!url || !url.trim() || !url.match(/^https?:\/\//)) {
-                return false;
-            }
-            const urlLower = url.toLowerCase();
-            return urlLower.includes('drive.google.com') && (
-                urlLower.includes('/file/d/') || 
-                urlLower.includes('/open?') || 
-                urlLower.includes('/view?')
+            const urlObj = new URL(url);
+            return urlObj.hostname.includes('drive.google.com') && (
+                urlObj.pathname.includes('/file/d/') ||
+                urlObj.pathname.includes('/open?') ||
+                urlObj.pathname.includes('/view?')
             );
-        } catch (e) {
+        } catch {
             return false;
         }
     };
@@ -184,7 +182,7 @@ export default function MainApp({ theme, toggleTheme }) {
 
     const copyRenderedContent = async () => {
         const elementId =
-            outputTab === 'Notes' ? 'notes-content' :
+            outputTab === 'Summary' ? 'summary-content' :
                 outputTab === 'Quiz' ? 'quiz-content' :
                     'transcript-content';
 
@@ -304,7 +302,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         setTranscriptSegments([]);
                                         setTranscript(data.transcript);
                                     } else if (data.type === 'transcript_chunk' && data.content) {
-                                        // Stream transcript chunks in real-time like Summary/Notes
+                                        // Stream transcript chunks in real-time like Summary/Summary
                                         setTranscript(prev => prev + data.content + '\n');
                                     } else if (data.type === 'segments' && data.segments) {
                                         // Handle timestamped segments
@@ -362,7 +360,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 setTranscriptSegments([]);
                                                 setTranscript(data.transcript);
                                             } else if (data.type === 'transcript_chunk' && data.content) {
-                                                // Stream transcript chunks in real-time like Summary/Notes
+                                                // Stream transcript chunks in real-time like Summary/Summary
                                                 setTranscript(prev => prev + data.content + '\n');
                                             } else if (data.type === 'complete') {
                                                 setIsTranscriptComplete(true);
@@ -413,7 +411,7 @@ export default function MainApp({ theme, toggleTheme }) {
         setVideoSummary('');
         setLastVideoId('');
         // Only clear embedUrl for non-video inputs
-        if (inputTab !== 'Video') {
+        if (inputTab !== 'URL' || !isVideoUrl(url)) {
             setEmbedUrl('');
         }
         setTranscriptSegments([]);
@@ -422,7 +420,7 @@ export default function MainApp({ theme, toggleTheme }) {
         try {
             if (inputTab === 'Text') {
                 setTranscript(textInput);
-                setOutputTab('Notes');
+                setOutputTab('Summary');
                 setRightPanelTab('Chat');
                 setLoading(false);
                 setLoadingMessage('');
@@ -458,7 +456,7 @@ export default function MainApp({ theme, toggleTheme }) {
                     
                     if (isDocumentFile) {
                         // For document uploads: hide transcript tab, show only Quiz and Chat, highlight Chat, auto-start summary
-                        setOutputTab('Notes'); // Don't show transcript tab for documents
+                        setOutputTab('Summary'); // Don't show transcript tab for documents
                         setRightPanelTab('Chat'); // Highlight Chat tab
                         
                         // Auto-start summary generation for documents
@@ -483,7 +481,7 @@ export default function MainApp({ theme, toggleTheme }) {
             }
 
             // For YouTube video, fetch segments
-            if (inputTab === 'Video' && url) {
+            if (inputTab === 'URL' && url) {
                 setOutputTab('Transcript');
                 setRightPanelTab('Video');
                 
@@ -503,7 +501,7 @@ export default function MainApp({ theme, toggleTheme }) {
             }
 
             // For Audio URLs (direct audio files or audio platforms)
-            if (inputTab === 'Audio' && url) {
+            if (inputTab === 'URL' && url) {
                 setOutputTab('Transcript');
                 setRightPanelTab('Chat'); // No video tab for audio
                 
@@ -676,7 +674,7 @@ export default function MainApp({ theme, toggleTheme }) {
 
     useEffect(() => {
         if (!isTranscriptComplete || !transcript) return;
-        if (outputTab === 'Notes') streamOutput('summary');
+        if (outputTab === 'Summary') streamOutput('summary');
         if (outputTab === 'Quiz') streamOutput('qna');
     }, [outputTab, streamOutput, isTranscriptComplete, transcript]);
 
@@ -706,14 +704,14 @@ export default function MainApp({ theme, toggleTheme }) {
     }, [isTranscriptComplete, transcript, suggestionsLoading]);
 
     const handleRefresh = (tab) => {
-        if (tab === 'Notes') streamOutput('summary', true);
+        if (tab === 'Summary') streamOutput('summary', true);
         if (tab === 'Quiz') streamOutput('qna', true);
     };
 
     useEffect(() => {
         if (outputTab === 'Transcript' && transcriptContainerRef.current) {
             transcriptContainerRef.current.scrollTop = transcriptContainerRef.current.scrollHeight;
-        } else if (outputTab === 'Notes' && summaryContainerRef.current) {
+        } else if (outputTab === 'Summary' && summaryContainerRef.current) {
             summaryContainerRef.current.scrollTop = summaryContainerRef.current.scrollHeight;
         } else if (outputTab === 'Quiz' && quizContainerRef.current) {
             quizContainerRef.current.scrollTop = quizContainerRef.current.scrollHeight;
@@ -725,7 +723,7 @@ export default function MainApp({ theme, toggleTheme }) {
         if (isTranscriptComplete) {
             if (outputTab === 'Transcript' && transcriptContainerRef.current) {
                 transcriptContainerRef.current.scrollTop = 0;
-            } else if (outputTab === 'Notes' && summaryContainerRef.current) {
+            } else if (outputTab === 'Summary' && summaryContainerRef.current) {
                 summaryContainerRef.current.scrollTop = 0;
             } else if (outputTab === 'Quiz' && quizContainerRef.current) {
                 quizContainerRef.current.scrollTop = 0;
@@ -742,41 +740,44 @@ export default function MainApp({ theme, toggleTheme }) {
         // eslint-disable-next-line
     }, [rightPanelTab, transcript]);
 
-    useEffect(() => {
-        if ((inputTab === 'File' || inputTab === 'Audio') && rightPanelTab === 'Video') {
-            setRightPanelTab('Chat');
-        }
-    }, [inputTab, rightPanelTab]);
+    // Removed problematic useEffect that was auto-switching from Video to Chat
 
     useEffect(() => {
         if (inputTab === 'File' && file && file.name && (file.name.toLowerCase().endsWith('.pdf') || file.name.toLowerCase().endsWith('.docx') || file.name.toLowerCase().endsWith('.doc') || file.name.toLowerCase().endsWith('.txt')) && outputTab === 'Transcript') {
-            setOutputTab('Notes');
+            setOutputTab('Summary');
         }
     }, [inputTab, outputTab, file]);
 
     useEffect(() => {
-        if (inputTab === 'Website') {
-            setWebsiteUrl('');
-            setTranscript('');
-            setSummary('');
-            setQnaText('');
-            setTranscriptSegments([]);
-            setChatInput('');
-            setChatHistory([]);
-            setSuggestedData([]);
-            setOutputTab('Transcript');
-            setRightPanelTab('Chat');
-            setIsTranscriptComplete(false);
-        }
-        // Optionally, add cleanup for other tabs if needed
+        setUrl('');
+        setWebsiteUrl('');
+        setTextInput('');
+        setFile(null);
+        setTranscript('');
+        setSummary('');
+        setQnaText('');
+        setTranscriptSegments([]);
+        setChatInput('');
+        setChatHistory([]);
+        setSuggestedData([]);
+        setOutputTab('Transcript');
+        setIsTranscriptComplete(false);
+        setVideoSummary('');
+        setLastVideoId('');
     }, [inputTab]);
 
-    // Auto-switch to Notes tab for document files
+    // Auto-switch to Summary tab for document files
     useEffect(() => {
         if (isDocumentFile) {
-            setOutputTab('Notes');
+            setOutputTab('Summary');
         }
     }, [isDocumentFile]);
+
+    useEffect(() => {
+        if (embedUrl && isVideoUrl(url)) {
+            setRightPanelTab('Video');
+        }
+    }, [embedUrl, url]);
 
     const handleCancel = () => {
         if (abortControllerRef.current) {
@@ -812,14 +813,19 @@ export default function MainApp({ theme, toggleTheme }) {
         doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
     }
 
-    // Add handler for website scraping
+    // Helper to detect website scraping (not video, not audio, not Google Drive)
+    const isWebsiteUrl = (url) => {
+        return url && !isVideoUrl(url) && !isAudioUrl(url) && !isGoogleDriveUrl(url);
+    };
+
+    // Update handleWebsiteScrape to immediately fetch summary and skip transcript tab
     const handleWebsiteScrape = async () => {
         if (!websiteUrl.trim()) return;
         setTranscript('');
         setSummary('');
         setQnaText('');
         setTranscriptSegments([]);
-        setOutputTab('Transcript');
+        setOutputTab('Summary'); // Directly show summary
         setRightPanelTab('Chat');
         setChatInput('');
         setChatHistory([]);
@@ -833,16 +839,43 @@ export default function MainApp({ theme, toggleTheme }) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url: websiteUrl.trim() })
             });
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${await response.text()}`);
-            }
             const data = await response.json();
+            if (!response.ok) {
+                setTranscript(data.error || 'Error scraping website.');
+                setIsTranscriptComplete(true);
+                setLoading(false);
+                setLoadingMessage('');
+                return;
+            }
             setTranscript(data.transcript || 'No content could be scraped from the website.');
             setIsTranscriptComplete(true);
+            setLoadingMessage('Generating summary...');
+            // Immediately fetch summary after transcript
+            await streamOutput('summary');
+            // Fetch chat suggestions after summary is generated
+            setSuggestionsLoading(true);
+            fetch(`${process.env.REACT_APP_API_BASE_URL}/chat/suggested-questions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ summary: data.transcript.slice(0, 10000) })
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log('Questions received for website:', data.questions);
+                    if (Array.isArray(data.questions)) {
+                        setSuggestedData(data.questions);
+                    }
+                })
+                .catch(err => console.error('Error loading suggestions for website:', err))
+                .finally(() => setSuggestionsLoading(false));
+            setLoading(false);
+            setLoadingMessage('');
         } catch (err) {
             setTranscript('Error scraping website.');
             setIsTranscriptComplete(true);
-        } finally {
             setLoading(false);
             setLoadingMessage('');
         }
@@ -862,12 +895,81 @@ export default function MainApp({ theme, toggleTheme }) {
         setChatHistory([]);
         setSuggestedData([]);
         setOutputTab('Transcript');
-        setRightPanelTab(inputTab === 'Video' ? 'Video' : 'Chat');
+        setRightPanelTab(inputTab === 'URL' ? 'Video' : 'Chat');
         setIsTranscriptComplete(false);
         setEmbedUrl('');
         setVideoSummary('');
         setLastVideoId('');
     }, [inputTab]);
+
+    // Helper to detect video URLs
+    const isVideoUrl = (url) => {
+        if (!url) return false;
+        try {
+            const urlObj = new URL(url);
+    return (
+                urlObj.hostname.includes('youtube.com') ||
+                urlObj.hostname.includes('youtu.be') ||
+                urlObj.hostname.includes('vimeo.com') ||
+                urlObj.hostname.includes('ted.com') ||
+                urlObj.hostname.includes('instagram.com') ||
+                urlObj.hostname.includes('tiktok.com')
+            );
+        } catch {
+            return false;
+        }
+    };
+
+    // Helper to detect audio URLs
+    const isAudioUrl = (url) => {
+        if (!url) return false;
+        return isAudioFileUrl(url) || isAudioPlatformUrl(url);
+    };
+
+    // Add handleUrlSubmit function
+    const handleUrlSubmit = () => {
+        if (!url || !url.trim()) {
+            alert('Invalid URL!');
+            return;
+        }
+        // Always reset state before handling new input
+        setTranscript('');
+        setSummary('');
+        setQnaText('');
+        setTranscriptSegments([]);
+        setIsTranscriptComplete(false);
+        setVideoSummary('');
+        setLastVideoId('');
+        setWebsiteUrl('');
+        if (isVideoUrl(url)) {
+            const embed = getEmbedUrl(url);
+            setEmbedUrl(embed);
+            handleGetTranscript();
+        } else if (isAudioUrl(url) || isGoogleDriveUrl(url)) {
+            setEmbedUrl('');
+            setRightPanelTab('Chat');
+            handleGetTranscript();
+        } else {
+            setWebsiteUrl(url);
+            setEmbedUrl('');
+            setRightPanelTab('Chat');
+            handleWebsiteScrape();
+        }
+    };
+
+    // Adjust tab rendering logic for output tabs
+    const getOutputTabs = () => {
+        if (inputTab === 'File' && isDocumentFile) return ['Summary'];
+        if (inputTab === 'URL' && isWebsiteUrl(url)) return ['Summary'];
+        return OUTPUT_TABS;
+    };
+
+    // Update getRightPanelTabs to always include 'Video' for video URLs (after Analyze)
+    const getRightPanelTabs = () => {
+        if (inputTab === 'File') return ['Quiz', 'Chat'];
+        if (inputTab === 'URL' && isVideoUrl(url)) return ['Video', 'Quiz', 'Chat'];
+        return ['Quiz', 'Chat'];
+    };
 
     return (
         <>
@@ -889,92 +991,60 @@ export default function MainApp({ theme, toggleTheme }) {
                         </div>
                         <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
                             <div className="flex gap-2 mb-4 relative">
-                                {INPUT_TABS.map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setInputTab(tab)}
+                            {INPUT_TABS.map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setInputTab(tab)}
                                         className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${inputTab === tab
-                                            ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                                            : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
-                                            }`}
-                                        aria-label={`Select ${tab} input`}
-                                    >
-                                        {tab}
-                                        {inputTab === tab && (
-                                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-100 transition-transform duration-300" />
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                                        : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
+                                        }`}
+                                    aria-label={`Select ${tab} input`}
+                                >
+                                    {tab}
+                                    {inputTab === tab && (
+                                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-100 transition-transform duration-300" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
                             {/* Input sections with reduced spacing */}
-                            {(inputTab === 'Video' || inputTab === 'Audio') && (
+                            {inputTab === 'URL' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <input
+                                <input
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
-                                        placeholder={`Paste a ${inputTab} URL here...${inputTab === 'Audio' ? ' (MP3, WAV, MP4, Spotify, SoundCloud, etc.)' : ''}`}
-                                        value={url}
-                                        onChange={e => setUrl(e.target.value)}
-                                        onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                              if (inputTab === 'Audio') {
-                                                if (isAudioFileUrl(url) || isAudioPlatformUrl(url) || isGoogleDriveUrl(url) || getEmbedUrl(url)) {
-                                                  setEmbedUrl(getEmbedUrl(url) || url);
-                                                  handleGetTranscript();
-                                                } else {
-                                                  alert('Invalid audio URL! Please provide a direct audio file URL (MP3, WAV, MP4, etc.), audio platform URL (Spotify, SoundCloud, etc.), or Google Drive link.');
-                                                }
-                                              } else {
-                                              const embed = getEmbedUrl(url);
-                                              if (embed) {
-                                                setEmbedUrl(embed);
-                                                handleGetTranscript();
-                                              } else {
-                                                alert('Invalid URL!');
-                                                }
-                                              }
-                                            }
-                                          }}
-                                        aria-label={`Enter ${inputTab} URL`}
-                                    />
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={() => {
-                                            if (inputTab === 'Audio') {
-                                                if (isAudioFileUrl(url) || isAudioPlatformUrl(url) || isGoogleDriveUrl(url) || getEmbedUrl(url)) {
-                                                    setEmbedUrl(getEmbedUrl(url) || url);
-                                                    handleGetTranscript();
-                                                } else {
-                                                    alert('Invalid audio URL! Please provide a direct audio file URL (MP3, WAV, MP4, etc.), audio platform URL (Spotify, SoundCloud, etc.), or Google Drive link.');
-                                                }
-                                            } else {
-                                            const embed = getEmbedUrl(url);
-                                            if (embed) {
-                                                setEmbedUrl(embed);
-                                                handleGetTranscript();
-                                            } else {
-                                                alert('Invalid URL!');
-                                                }
+                                        placeholder="Paste a URL here (YouTube, Vimeo, Spotify, Website, etc.)..."
+                                    value={url}
+                                    onChange={e => setUrl(e.target.value)}
+                                    onKeyDown={e => {
+                                            if (e.key === 'Enter' && url.trim()) {
+                                                handleUrlSubmit();
                                             }
                                         }}
-                                        aria-label="Analyze input"
+                                        aria-label="Enter URL"
+                                />
+                                <button
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        onClick={handleUrlSubmit}
+                                    aria-label="Analyze input"
                                         style={{ whiteSpace: 'nowrap' }}
                                         disabled={loading || !url.trim()}
-                                    >
-                                        Analyze
-                                    </button>
-                                </div>
+                                >
+                                    Analyze
+                                </button>
+                            </div>
                             )}
                             {inputTab === 'Text' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <textarea
+                                <textarea
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         rows={2}
-                                        placeholder="Paste raw text here..."
-                                        value={textInput}
-                                        onChange={e => setTextInput(e.target.value)}
-                                        aria-label="Enter text input"
+                                    placeholder="Paste raw text here..."
+                                    value={textInput}
+                                    onChange={e => setTextInput(e.target.value)}
+                                    aria-label="Enter text input"
                                         style={{ resize: 'vertical' }}
-                                    />
+                                />
                                     <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleGetTranscript}
@@ -988,8 +1058,8 @@ export default function MainApp({ theme, toggleTheme }) {
                             )}
                             {inputTab === 'File' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <input
-                                        type="file"
+                                <input
+                                    type="file"
                                         accept=".pdf,.doc,.docx,.txt,.mp4,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.aiff"
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         onChange={e => {
@@ -1003,80 +1073,59 @@ export default function MainApp({ theme, toggleTheme }) {
                                             setOutputTab('Transcript');
                                             setRightPanelTab('Chat');
                                         }}
-                                        aria-label="Upload file"
-                                    />
-                                    <button
+                                    aria-label="Upload file"
+                                />
+                                <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={handleGetTranscript}
-                                        aria-label="Upload and extract"
+                                    onClick={handleGetTranscript}
+                                    aria-label="Upload and extract"
                                         style={{ whiteSpace: 'nowrap' }}
                                         disabled={loading || !file}
-                                    >
-                                        Upload & Extract
-                                    </button>
-                                </div>
-                            )}
-                            {inputTab === 'Website' && (
-                                <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <input
-                                        type="text"
-                                        className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
-                                        placeholder="Enter website URL (e.g. https://example.com)"
-                                        value={websiteUrl}
-                                        onChange={e => setWebsiteUrl(e.target.value)}
-                                        onKeyDown={e => { if (e.key === 'Enter' && websiteUrl.trim() && !loading) handleWebsiteScrape(); }}
-                                        disabled={loading}
-                                    />
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={handleWebsiteScrape}
-                                        disabled={loading || !websiteUrl.trim()}
-                                        style={{ whiteSpace: 'nowrap' }}
-                                    >
-                                        {loading ? 'Scraping...' : 'Submit'}
-                                    </button>
-                                </div>
-                            )}
+                                >
+                                    Upload & Extract
+                                </button>
+                            </div>
+                        )}
                             {/* Loading modal with smaller size */}
-                            {loading && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                        {loading && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                                     <div className="flex flex-col items-center justify-center p-6 rounded-xl glassmorphism">
                                         <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
                                         <p className="text-white text-sm font-medium mt-3">
-                                            {loadingMessage}
-                                        </p>
+                                        {loadingMessage}
+                                    </p>
                                         <button
                                             className={`mt-4 px-4 py-1.5 rounded-lg text-xs font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
                                             onClick={handleCancel}
                                         >
                                             Cancel
                                         </button>
-                                    </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
                         {/* Main content area with reduced spacing */}
                         <div className="flex flex-col md:flex-row gap-3 h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] mt-3">
-                            <div
+                        <div
                                 className={`w-full md:w-3/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}
                                 style={{ maxHeight: '80vh', minHeight: 0, flexBasis: 0, flexGrow: 1 }}
-                            >
-                                <div
-                                    id="output-container"
+                        >
+                            <div
+                                id="output-container"
                                     className="flex-1 min-h-0 rounded-lg p-4 shadow-inner text-sm prose max-w-none bg-opacity-50 transition-all duration-300"
                                     style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '70vh' }}
-                                >
-                                    {outputTab === 'Transcript' && (
+                            >
+                                {outputTab === 'Transcript' && (
                                         <h2 className="topic-title text-base">Transcript<br></br></h2>
                                     )}
-                                    {outputTab === 'Notes' && (
+                                    {outputTab === 'Summary' && (
                                         <h2 className="topic-title text-base">Summary<br></br></h2>
                                     )}
 
                                     {outputTab === 'Transcript' && (
                                         <div
-                                            id="transcript-content"
-                                            ref={transcriptContainerRef}
+                                        id="transcript-content"
+                                        ref={transcriptContainerRef}
                                             className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
                                         >
                                             {transcriptSegments.length > 0 ? (
@@ -1099,25 +1148,25 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             ) : (
                                                 <div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
-                                            {transcript || 'Your transcript will appear here once processed.'}
+                                        {transcript || 'Your transcript will appear here once processed.'}
                                                 </div>
-                                            )}
+                                )}
                                         </div>
                                     )}
-                                    {outputTab === 'Notes' && summary && (
-                                        <div
-                                            id="notes-content"
-                                            ref={summaryContainerRef}
+                                    {outputTab === 'Summary' && summary && (
+                                    <div
+                                            id="summary-content"
+                                        ref={summaryContainerRef}
                                             style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
-                                        >
-                                            <MarkdownSummary summary={summary} theme={theme} />
-                                        </div>
-                                    )}
-                                    {outputTab === 'Quiz' && qnaText && (
+                                    >
+                                        <MarkdownSummary summary={summary} theme={theme} />
+                                    </div>
+                                )}
+                                {outputTab === 'Quiz' && qnaText && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                        <div
+                                    <div
                                                 id="right-quiz-content"
-                                            ref={quizContainerRef}
+                                        ref={quizContainerRef}
                                                 className="flex-1 overflow-y-auto custom-scrollbar mb-3"
                                                 style={{ minHeight: 0, maxHeight: '60vh' }}
                                             >
@@ -1158,42 +1207,42 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     );
                                                 })}
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                            </div>
                                 {/* Action buttons with smaller size */}
                                 <div className="flex flex-wrap gap-2 items-center mt-4 mb-3">
-                                    {(isDocumentFile ? ['Notes'] : OUTPUT_TABS).map(tab => (
-                                        <div key={tab} className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => setOutputTab(tab)}
+                                    {getOutputTabs().map(tab => (
+                                    <div key={tab} className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setOutputTab(tab)}
                                                 className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
-                                                aria-label={`Select ${tab} output`}
-                                            >
-                                                {tab}
-                                                {outputTab === tab && (
-                                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
-                                                )}
-                                            </button>
-                                        </div>
-                                    ))}
+                                            aria-label={`Select ${tab} output`}
+                                        >
+                                            {tab}
+                                            {outputTab === tab && (
+                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
                                     {/* Action buttons with smaller size */}
-                                    {outputTab === 'Notes' && (
-                                        <>
-                                            <button
-                                                onClick={() => {
+                                    {outputTab === 'Summary' && (
+                                    <>
+                                        <button
+                                            onClick={() => {
                                                     if (!summary) return;
                                                     const content = summary;
-                                                    const label = 'Notes';
+                                                    const label = 'Summary';
                                                     exportToPDF(content, label, transcript);
                                                 }}
                                                 className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={summary ? 'Download PDF' : 'No summary to download'}
-                                                aria-label="Download as PDF"
+                                            aria-label="Download as PDF"
                                                 disabled={!summary}
-                                            >
+                                        >
                                                 ⬇️
-                                            </button>
+                                        </button>
                                             <button
                                                 onClick={copyRenderedContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1203,14 +1252,14 @@ export default function MainApp({ theme, toggleTheme }) {
                                             >
                                                 📄
                                             </button>
-                                            <button
+                                        <button
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                onClick={() => handleRefresh('Notes')}
-                                                title={`Refresh Notes`}
-                                                aria-label={`Refresh Notes`}
+                                                onClick={() => handleRefresh('Summary')}
+                                                title={`Refresh Summary`}
+                                                aria-label={`Refresh Summary`}
                                             >
                                                 🔄
-                                            </button>
+                                        </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
                                             )}
@@ -1218,7 +1267,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                     )}
                                     {outputTab === 'Transcript' && (
                                         <>
-                                            <button
+                                    <button
                                                 onClick={() => {
                                                     if (!transcript) return;
                                                     const content = transcript;
@@ -1231,8 +1280,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!transcript}
                                             >
                                                 ⬇️
-                                            </button>
-                                            <button
+                                    </button>
+                                <button
                                                 onClick={copyRenderedContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={transcript ? 'Copy content with formatting' : 'No transcript to copy'}
@@ -1240,29 +1289,29 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!transcript}
                                             >
                                                 📄
-                                            </button>
-                                            <button
+                                </button>
+                                <button
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                 onClick={() => handleRefresh('Transcript')}
                                                 title={`Refresh Transcript`}
                                                 aria-label={`Refresh Transcript`}
                                             >
                                                 🔄
-                                            </button>
+                                </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
                                             )}
                                         </>
                                     )}
-                                </div>
+                            </div>
                             </div>
                             {/* Right panel with reduced spacing */}
                             <div className={`w-full md:w-2/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
                                 <div className="flex flex-col h-full min-h-0" style={{ flex: 1 }}>
-                                    {rightPanelTab === 'Video' && inputTab !== 'File' && inputTab !== 'Audio' && inputTab !== 'Text' && embedUrl && (
-                                        <VideoPanel theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
-                                    )}
-                                    {rightPanelTab === 'Quiz' && qnaText && (
+                                {rightPanelTab === 'Video' && embedUrl && (
+                                        <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
+                                )}
+                                {rightPanelTab === 'Quiz' && qnaText && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             <div
                                                 id="right-quiz-content"
@@ -1270,71 +1319,65 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 className="flex-1 overflow-y-auto custom-scrollbar mb-3"
                                                 style={{ minHeight: 0, maxHeight: '60vh' }}
                                             >
-                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                                let question = '';
-                                                let answer = '';
-                                                if (lines.length > 0) {
-                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                    if (qIdx !== -1) {
-                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    } else {
-                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    }
-                                                    const nextQIdx = answer.indexOf('###');
-                                                    if (nextQIdx !== -1) {
-                                                        answer = answer.slice(0, nextQIdx).trim();
-                                                    }
+                                        {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                            let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                            let question = '';
+                                            let answer = '';
+                                            if (lines.length > 0) {
+                                                const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                if (qIdx !== -1) {
+                                                    question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                } else {
+                                                    question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
                                                 }
-                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                                if (isJunkQuestion && !answer) return null;
-                                                if (isJunkQuestion) question = '';
-                                                if (!question && !answer) return null;
-                                                return (
+                                                const nextQIdx = answer.indexOf('###');
+                                                if (nextQIdx !== -1) {
+                                                    answer = answer.slice(0, nextQIdx).trim();
+                                                }
+                                            }
+                                            const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                            if (isJunkQuestion && !answer) return null;
+                                            if (isJunkQuestion) question = '';
+                                            if (!question && !answer) return null;
+                                            return (
                                                     <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
-                                                        <div className="flex flex-col w-full max-w-full">
-                                                            {question && (
+                                                    <div className="flex flex-col w-full max-w-full">
+                                                        {question && (
                                                                 <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                     style={{ fontWeight: 800 }}>{question}</div>
-                                                            )}
-                                                            {answer && (
+                                                                 style={{ fontWeight: 800 }}>{question}</div>
+                                                        )}
+                                                        {answer && (
                                                                 <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
-                                                            )}
-                                                        </div>
+                                                        )}
                                                     </div>
-                                                );
-                                            })}
+                                                </div>
+                                            );
+                                        })}
                                             </div>
-                                        </div>
-                                    )}
-                                    {rightPanelTab === 'Chat' && (
-                                        <ChatPanel
-                                            theme={theme}
-                                            chatInput={chatInput}
-                                            setChatInput={setChatInput}
-                                            handleChatSubmit={handleChatSubmit}
-                                            showDropdown={showDropdown}
-                                            setShowDropdown={setShowDropdown}
-                                            suggestedData={suggestedData}
-                                            inputRef={inputRef}
-                                            chatContainerRef={chatContainerRef}
-                                            chatHistory={chatHistory}
-                                            chatLoading={chatLoading}
-                                        />
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                                {rightPanelTab === 'Chat' && (
+                                    <ChatPanel
+                                        theme={theme}
+                                        chatInput={chatInput}
+                                        setChatInput={setChatInput}
+                                        handleChatSubmit={handleChatSubmit}
+                                        showDropdown={showDropdown}
+                                        setShowDropdown={setShowDropdown}
+                                        suggestedData={suggestedData}
+                                        inputRef={inputRef}
+                                        chatContainerRef={chatContainerRef}
+                                        chatHistory={chatHistory}
+                                        chatLoading={chatLoading}
+                                    />
+                                )}
+                            </div>
                                 {/* Right panel tabs with smaller size */}
                                 <div className="flex flex-row items-center justify-between gap-2 mt-4 mb-3 w-full">
                                     <div className="flex gap-2">
-                                        {(
-                                            inputTab === 'File' || inputTab === 'Audio' || inputTab === 'Text'
-                                                ? ['Quiz', 'Chat']
-                                                : inputTab === 'Website'
-                                                    ? ['Quiz', 'Chat']
-                                                    : ['Video', 'Quiz', 'Chat']
-                                        ).map(tab => (
+                                        {getRightPanelTabs().map(tab => (
                                             <button
                                                 key={tab}
                                                 onClick={() => setRightPanelTab(tab)}
@@ -1350,10 +1393,9 @@ export default function MainApp({ theme, toggleTheme }) {
                                             </button>
                                         ))}
                                     </div>
-                                </div>
-                                {/* Quiz action buttons ONLY in right panel, always visible */}
-                                {rightPanelTab === 'Quiz' && (
-                                    <div className="flex gap-2">
+                                    {/* Quiz action buttons ONLY in right panel, always visible */}
+                                    {rightPanelTab === 'Quiz' && (
+                                        <div className="flex gap-2">
                                         <button
                                             onClick={() => {
                                                 if (!qnaText) return;
@@ -1388,10 +1430,11 @@ export default function MainApp({ theme, toggleTheme }) {
                                         {copied && copiedPanel === 'right' && (
                                             <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
                                         )}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
+                                        </div>
+                                    )}
+                                </div>
+            </div>
+        </div>
                     </div>
                 </div>
             </div>

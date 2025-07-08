@@ -7,7 +7,7 @@ export default function MarkdownSummary({ summary, theme }) {
   const cleanedSummary = summary.replace(/^#{1,6}\s*$/gm, '');
 
   return (
-    <div id="notes-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'} text-sm`}>
+    <div id="summary-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'} text-sm`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}
