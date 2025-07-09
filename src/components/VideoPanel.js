@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import MarkdownSummary from "./MarkdownSummary";
 
 export default function VideoPanel({ theme, embedUrl, videoSummary }) {
   const iframeRef = useRef(null);
@@ -7,7 +8,7 @@ export default function VideoPanel({ theme, embedUrl, videoSummary }) {
     // Force iframe to reload when component mounts or embedUrl changes
     if (iframeRef.current && embedUrl) {
       const iframe = iframeRef.current;
-      
+
       // Temporarily clear src and set it back to force reload
       iframe.src = '';
       setTimeout(() => {
@@ -30,7 +31,7 @@ export default function VideoPanel({ theme, embedUrl, videoSummary }) {
         />
       </div>
       <div className={`text-sm ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>
-        <p>{videoSummary || 'Loading summary...'}</p>
+        <MarkdownSummary summary={videoSummary || 'Loading summary...'} theme={theme} />
       </div>
     </div>
   );

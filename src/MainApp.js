@@ -6,6 +6,7 @@ import { FaMoon, FaSun } from 'react-icons/fa';
 import ChatPanel from './components/ChatPanel';
 import VideoPanel from './components/VideoPanel';
 import MarkdownSummary from './components/MarkdownSummary';
+import QuizPanel from './components/QuizPanel';
 
 const INPUT_TABS = ['URL', 'Text', 'File'];
 const OUTPUT_TABS = ['Transcript', 'Summary'];
@@ -134,22 +135,22 @@ export default function MainApp({ theme, toggleTheme }) {
             if (!url || !url.trim() || !url.match(/^https?:\/\//)) {
                 return '';
             }
-            
+
             // Check for audio file URLs first
             if (isAudioFileUrl(url)) {
                 return url; // Return the URL as-is for audio files
             }
-            
+
             // Check for audio platform URLs
             if (isAudioPlatformUrl(url)) {
                 return url; // Return the URL as-is for audio platforms
             }
-            
+
             // Check for Google Drive URLs
             if (isGoogleDriveUrl(url)) {
                 return url; // Return the URL as-is for Google Drive
             }
-            
+
             const urlObj = new URL(url);
             if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
                 const videoId = extractVideoId(url);
@@ -426,7 +427,7 @@ export default function MainApp({ theme, toggleTheme }) {
                 setLoadingMessage('');
                 setIsTranscriptComplete(true);
                 console.log('Text input complete:', { source: 'Text', textLength: textInput.length });
-                
+
                 // Immediately generate summary for text input
                 setLoadingMessage('Generating summary...');
                 await streamOutput('summary');
@@ -436,29 +437,29 @@ export default function MainApp({ theme, toggleTheme }) {
             if (inputTab === 'File') {
                 const formData = new FormData();
                 formData.append('file', file);
-                
+
                 // Check if it's a large audio file
                 const isLargeAudioFile = file.name && (file.name.toLowerCase().endsWith('.mp4') || file.name.toLowerCase().endsWith('.mp3')) && file.size > 24 * 1024 * 1024;
                 const loadingMessage = isLargeAudioFile ? 'Processing large audio file (this may take a while)...' : 'Processing file...';
                 setLoadingMessage(loadingMessage);
-                
+
                 const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/transcript/upload`, formData);
-                
+
                 if (res?.data?.transcript) {
                     setTranscript(res.data.transcript);
-                    
+
                     // Check if it's a document file (PDF, DOCX, DOC, TXT) or audio file
                     const documentExtensions = ['.pdf', '.docx', '.doc', '.txt'];
                     const audioExtensions = ['.mp4', '.mp3', '.wav', '.m4a', '.aac', '.ogg', '.flac', '.wma', '.aiff'];
-                    
+
                     const isDocumentFile = file.name && documentExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
                     const isAudioFile = file.name && audioExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-                    
+
                     if (isDocumentFile) {
                         // For document uploads: hide transcript tab, show only Quiz and Chat, highlight Chat, auto-start summary
                         setOutputTab('Summary'); // Don't show transcript tab for documents
                         setRightPanelTab('Chat'); // Highlight Chat tab
-                        
+
                         // Auto-start summary generation for documents
                         setLoadingMessage('Generating summary...');
                         await streamOutput('summary');
@@ -467,10 +468,10 @@ export default function MainApp({ theme, toggleTheme }) {
                         setOutputTab('Transcript'); // Show transcript tab for audio
                         setRightPanelTab('Chat'); // Highlight Chat tab (no video tab for audio files)
                     }
-                    
+
                     setIsTranscriptComplete(true);
                     console.log('File upload complete:', { source: 'File', transcriptLength: res.data.transcript.length, isDocument: isDocumentFile, isAudio: isAudioFile });
-                    
+
                 } else {
                     alert('No transcript found or failed to extract data.');
                     setIsTranscriptComplete(true);
@@ -484,17 +485,17 @@ export default function MainApp({ theme, toggleTheme }) {
             if (inputTab === 'URL' && url) {
                 setOutputTab('Transcript');
                 setRightPanelTab('Video');
-                
+
                 // Use segments endpoint which handles both timestamped segments and streaming fallback
                 setLoadingMessage('Extracting transcript...');
-                
+
                 try {
                     await fetchTranscriptSegments(url);
                 } catch (error) {
                     console.error('Transcript extraction error:', error);
                     alert('Failed to extract transcript. Please try again.');
                 }
-                
+
                 setLoading(false);
                 setLoadingMessage('');
                 return;
@@ -504,31 +505,31 @@ export default function MainApp({ theme, toggleTheme }) {
             if (inputTab === 'URL' && url) {
                 setOutputTab('Transcript');
                 setRightPanelTab('Chat'); // No video tab for audio
-                
+
                 // Use stream endpoint for audio files and platforms
                 setLoadingMessage('Processing audio...');
-                
+
                 try {
                     abortControllerRef.current = new AbortController();
                     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/transcript/stream`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ url: url }),
                         signal: abortControllerRef.current.signal
-            });
+                    });
 
-            if (!response.ok) {
+                    if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+                    }
 
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder('utf-8');
-            let done = false;
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder('utf-8');
+                    let done = false;
 
-            while (!done) {
-                const { value, done: isDone } = await reader.read();
-                if (value) {
-                    const chunk = decoder.decode(value);
+                    while (!done) {
+                        const { value, done: isDone } = await reader.read();
+                        if (value) {
+                            const chunk = decoder.decode(value);
                             chunk.split(/\n\n+/).forEach(line => {
                                 if (line.trim().startsWith('data:')) {
                                     try {
@@ -538,24 +539,24 @@ export default function MainApp({ theme, toggleTheme }) {
                                             setTranscript(prev => prev + data.content + '\n');
                                         } else if (data.type === 'progress' && data.message) {
                                             setLoadingMessage(data.message);
-                                } else if (data.type === 'complete') {
-                                    setIsTranscriptComplete(true);
-                                } else if (data.type === 'error') {
+                                        } else if (data.type === 'complete') {
+                                            setIsTranscriptComplete(true);
+                                        } else if (data.type === 'error') {
                                             alert(data.message || 'Failed to process audio. Please ensure the URL provides direct access to an audio file.');
-                                }
+                                        }
                                     } catch (e) {
                                         // Ignore parse errors for incomplete chunks
-                            }
-                        }
+                                    }
+                                }
                             });
-                }
-                done = isDone;
-            }
+                        }
+                        done = isDone;
+                    }
                 } catch (error) {
                     if (error.name === 'AbortError') return;
                     alert('Failed to process audio. Please try again.');
                 }
-                
+
                 setLoading(false);
                 setLoadingMessage('');
                 return;
@@ -566,8 +567,8 @@ export default function MainApp({ theme, toggleTheme }) {
             alert('Error extracting transcript.');
             setIsTranscriptComplete(true);
         }
-            setLoading(false);
-            setLoadingMessage('');
+        setLoading(false);
+        setLoadingMessage('');
     };
 
     const streamOutput = useCallback(async (type, force = false) => {
@@ -907,7 +908,7 @@ export default function MainApp({ theme, toggleTheme }) {
         if (!url) return false;
         try {
             const urlObj = new URL(url);
-    return (
+            return (
                 urlObj.hostname.includes('youtube.com') ||
                 urlObj.hostname.includes('youtu.be') ||
                 urlObj.hostname.includes('vimeo.com') ||
@@ -991,60 +992,60 @@ export default function MainApp({ theme, toggleTheme }) {
                         </div>
                         <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
                             <div className="flex gap-2 mb-4 relative">
-                            {INPUT_TABS.map(tab => (
-                                <button
-                                    key={tab}
-                                    onClick={() => setInputTab(tab)}
+                                {INPUT_TABS.map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setInputTab(tab)}
                                         className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${inputTab === tab
-                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                                        : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
-                                        }`}
-                                    aria-label={`Select ${tab} input`}
-                                >
-                                    {tab}
-                                    {inputTab === tab && (
-                                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-100 transition-transform duration-300" />
-                                    )}
-                                </button>
-                            ))}
-                        </div>
+                                            ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                                            : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
+                                            }`}
+                                        aria-label={`Select ${tab} input`}
+                                    >
+                                        {tab}
+                                        {inputTab === tab && (
+                                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-100 transition-transform duration-300" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
                             {/* Input sections with reduced spacing */}
                             {inputTab === 'URL' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                <input
+                                    <input
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         placeholder="Paste a URL here (YouTube, Vimeo, Spotify, Website, etc.)..."
-                                    value={url}
-                                    onChange={e => setUrl(e.target.value)}
-                                    onKeyDown={e => {
+                                        value={url}
+                                        onChange={e => setUrl(e.target.value)}
+                                        onKeyDown={e => {
                                             if (e.key === 'Enter' && url.trim()) {
                                                 handleUrlSubmit();
-                                        }
-                                      }}
+                                            }
+                                        }}
                                         aria-label="Enter URL"
-                                />
-                                <button
+                                    />
+                                    <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleUrlSubmit}
-                                    aria-label="Analyze input"
+                                        aria-label="Analyze input"
                                         style={{ whiteSpace: 'nowrap' }}
                                         disabled={loading || !url.trim()}
-                                >
-                                    Analyze
-                                </button>
-                            </div>
+                                    >
+                                        Analyze
+                                    </button>
+                                </div>
                             )}
                             {inputTab === 'Text' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                <textarea
+                                    <textarea
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         rows={2}
-                                    placeholder="Paste raw text here..."
-                                    value={textInput}
-                                    onChange={e => setTextInput(e.target.value)}
-                                    aria-label="Enter text input"
+                                        placeholder="Paste raw text here..."
+                                        value={textInput}
+                                        onChange={e => setTextInput(e.target.value)}
+                                        aria-label="Enter text input"
                                         style={{ resize: 'vertical' }}
-                                />
+                                    />
                                     <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleGetTranscript}
@@ -1058,8 +1059,8 @@ export default function MainApp({ theme, toggleTheme }) {
                             )}
                             {inputTab === 'File' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                <input
-                                    type="file"
+                                    <input
+                                        type="file"
                                         accept=".pdf,.doc,.docx,.txt,.mp4,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.aiff"
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         onChange={e => {
@@ -1073,57 +1074,57 @@ export default function MainApp({ theme, toggleTheme }) {
                                             setOutputTab('Transcript');
                                             setRightPanelTab('Chat');
                                         }}
-                                    aria-label="Upload file"
-                                />
-                                <button
+                                        aria-label="Upload file"
+                                    />
+                                    <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                    onClick={handleGetTranscript}
-                                    aria-label="Upload and extract"
+                                        onClick={handleGetTranscript}
+                                        aria-label="Upload and extract"
                                         style={{ whiteSpace: 'nowrap' }}
                                         disabled={loading || !file}
-                                >
-                                    Upload & Extract
-                                </button>
-                            </div>
-                        )}
+                                    >
+                                        Upload & Extract
+                                    </button>
+                                </div>
+                            )}
                             {/* Loading modal with smaller size */}
-                        {loading && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                            {loading && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                                     <div className="flex flex-col items-center justify-center p-6 rounded-xl glassmorphism">
                                         <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
                                         <p className="text-white text-sm font-medium mt-3">
-                                        {loadingMessage}
-                                    </p>
+                                            {loadingMessage}
+                                        </p>
                                         <button
                                             className={`mt-4 px-4 py-1.5 rounded-lg text-xs font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
                                             onClick={handleCancel}
                                         >
                                             Cancel
                                         </button>
+                                    </div>
                                 </div>
-                            </div>
-                        )}
-                    </div>
+                            )}
+                        </div>
                         {/* Main content area with reduced spacing */}
                         <div className="flex flex-col md:flex-row gap-3 h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] mt-3">
-                        <div
+                            <div
                                 className={`w-full md:w-3/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}
                                 style={{ maxHeight: '80vh', minHeight: 0, flexBasis: 0, flexGrow: 1 }}
-                        >
-                            <div
-                                id="output-container"
+                            >
+                                <div
+                                    id="output-container"
                                     className="flex-1 min-h-0 rounded-lg p-4 shadow-inner text-sm prose max-w-none bg-opacity-50 transition-all duration-300"
                                     style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '70vh' }}
-                            >
-                                {outputTab === 'Transcript' && (
+                                >
+                                    {outputTab === 'Transcript' && (
                                         <h2 className="topic-title text-base">Transcript<br></br></h2>
                                     )}
-                                    
+
 
                                     {outputTab === 'Transcript' && (
                                         <div
-                                        id="transcript-content"
-                                        ref={transcriptContainerRef}
+                                            id="transcript-content"
+                                            ref={transcriptContainerRef}
                                             className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
                                         >
                                             {transcriptSegments.length > 0 ? (
@@ -1146,131 +1147,131 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             ) : (
                                                 <div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
-                                        {transcript || 'Your transcript will appear here once processed.'}
+                                                    {transcript || 'Your transcript will appear here once processed.'}
                                                 </div>
-                                )}
+                                            )}
                                         </div>
                                     )}
                                     {outputTab === 'Summary' && summary && (
-                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                        {/* Sticky Header */}
-                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                             style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
-                                            <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
-                                            <button
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                onClick={() => handleRefresh('Summary')}
-                                                title="Refresh Summary"
-                                                aria-label="Refresh Summary"
+                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                            {/* Sticky Header */}
+                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
+                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                                <button
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                    onClick={() => handleRefresh('Summary')}
+                                                    title="Refresh Summary"
+                                                    aria-label="Refresh Summary"
+                                                >
+                                                    🔄
+                                                </button>
+                                            </div>
+                                            {/* Scrollable Content */}
+                                            <div
+                                                id="summary-content"
+                                                ref={summaryContainerRef}
+                                                style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
                                             >
-                                                🔄
-                                            </button>
+                                                <MarkdownSummary summary={summary} theme={theme} />
+                                            </div>
                                         </div>
-                                        {/* Scrollable Content */}
-                                        <div
-                                            id="summary-content"
-                                            ref={summaryContainerRef}
-                                            style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
-                                        >
-                                            <MarkdownSummary summary={summary} theme={theme} />
-                                        </div>
-                                    </div>
-                                )}
-                                {outputTab === 'Quiz' && qnaText && (
-                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                        {/* Sticky Header */}
-                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                             style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                            <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                            <button
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                onClick={() => handleRefresh('Quiz')}
-                                                title="Refresh Quiz"
-                                                aria-label="Refresh Quiz"
+                                    )}
+                                    {outputTab === 'Quiz' && qnaText && (
+                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                            {/* Sticky Header */}
+                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                <button
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                    onClick={() => handleRefresh('Quiz')}
+                                                    title="Refresh Quiz"
+                                                    aria-label="Refresh Quiz"
+                                                >
+                                                    🔄
+                                                </button>
+                                            </div>
+                                            {/* Scrollable Content */}
+                                            <div
+                                                id="right-quiz-content"
+                                                ref={quizContainerRef}
+                                                className="flex-1 overflow-y-auto custom-scrollbar"
+                                                style={{ minHeight: 0, maxHeight: '60vh' }}
                                             >
-                                                🔄
-                                            </button>
-                                        </div>
-                                        {/* Scrollable Content */}
-                                        <div
-                                            id="right-quiz-content"
-                                            ref={quizContainerRef}
-                                            className="flex-1 overflow-y-auto custom-scrollbar"
-                                            style={{ minHeight: 0, maxHeight: '60vh' }}
-                                        >
-                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                                let question = '';
-                                                let answer = '';
-                                                if (lines.length > 0) {
-                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                    if (qIdx !== -1) {
-                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    } else {
-                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                                    let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                                    let question = '';
+                                                    let answer = '';
+                                                    if (lines.length > 0) {
+                                                        const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                        if (qIdx !== -1) {
+                                                            question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                            answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        } else {
+                                                            question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                            answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        }
+                                                        const nextQIdx = answer.indexOf('###');
+                                                        if (nextQIdx !== -1) {
+                                                            answer = answer.slice(0, nextQIdx).trim();
+                                                        }
                                                     }
-                                                    const nextQIdx = answer.indexOf('###');
-                                                    if (nextQIdx !== -1) {
-                                                        answer = answer.slice(0, nextQIdx).trim();
-                                                    }
-                                                }
-                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                                if (isJunkQuestion && !answer) return null;
-                                                if (isJunkQuestion) question = '';
-                                                if (!question && !answer) return null;
-                                                return (
-                                                    <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
-                                                        <div className="flex flex-col w-full max-w-full">
-                                                            {question && (
-                                                                <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                     style={{ fontWeight: 800 }}>{question}</div>
-                                                            )}
-                                                            {answer && (
-                                                                <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
-                                                            )}
+                                                    const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                                    if (isJunkQuestion && !answer) return null;
+                                                    if (isJunkQuestion) question = '';
+                                                    if (!question && !answer) return null;
+                                                    return (
+                                                        <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
+                                                            <div className="flex flex-col w-full max-w-full">
+                                                                {question && (
+                                                                    <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
+                                                                        style={{ fontWeight: 800 }}>{question}</div>
+                                                                )}
+                                                                {answer && (
+                                                                    <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{ marginTop: question ? '-2px' : undefined }}>{answer}</div>
+                                                                )}
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                );
-                                            })}
+                                                    );
+                                                })}
+                                            </div>
                                         </div>
-                                    </div>
-                                )}
-                            </div>
+                                    )}
+                                </div>
                                 {/* Action buttons with smaller size */}
                                 <div className="flex flex-wrap gap-2 items-center mt-4 mb-3">
                                     {getOutputTabs().map(tab => (
-                                    <div key={tab} className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setOutputTab(tab)}
+                                        <div key={tab} className="flex items-center gap-2">
+                                            <button
+                                                onClick={() => setOutputTab(tab)}
                                                 className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
-                                            aria-label={`Select ${tab} output`}
-                                        >
-                                            {tab}
-                                            {outputTab === tab && (
-                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
-                                            )}
-                                        </button>
-                                    </div>
-                                ))}
+                                                aria-label={`Select ${tab} output`}
+                                            >
+                                                {tab}
+                                                {outputTab === tab && (
+                                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
+                                                )}
+                                            </button>
+                                        </div>
+                                    ))}
                                     {/* Action buttons with smaller size */}
                                     {outputTab === 'Summary' && (
-                                    <>
-                                        <button
-                                            onClick={() => {
+                                        <>
+                                            <button
+                                                onClick={() => {
                                                     if (!summary) return;
                                                     const content = summary;
                                                     const label = 'Summary';
                                                     exportToPDF(content, label, transcript);
-                                            }}
+                                                }}
                                                 className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={summary ? 'Download PDF' : 'No summary to download'}
-                                            aria-label="Download as PDF"
+                                                aria-label="Download as PDF"
                                                 disabled={!summary}
-                                        >
+                                            >
                                                 ⬇️
-                                        </button>
+                                            </button>
                                             <button
                                                 onClick={copyRenderedContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1280,14 +1281,14 @@ export default function MainApp({ theme, toggleTheme }) {
                                             >
                                                 📄
                                             </button>
-                                        <button
+                                            <button
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                 onClick={() => handleRefresh('Summary')}
                                                 title={`Refresh Summary`}
                                                 aria-label={`Refresh Summary`}
-                                        >
+                                            >
                                                 🔄
-                                        </button>
+                                            </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
                                             )}
@@ -1295,7 +1296,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                     )}
                                     {outputTab === 'Transcript' && (
                                         <>
-                                    <button
+                                            <button
                                                 onClick={() => {
                                                     if (!transcript) return;
                                                     const content = transcript;
@@ -1308,8 +1309,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!transcript}
                                             >
                                                 ⬇️
-                                    </button>
-                                <button
+                                            </button>
+                                            <button
                                                 onClick={copyRenderedContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={transcript ? 'Copy content with formatting' : 'No transcript to copy'}
@@ -1317,105 +1318,70 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!transcript}
                                             >
                                                 📄
-                                </button>
-                                <button
+                                            </button>
+                                            <button
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                 onClick={() => handleRefresh('Transcript')}
                                                 title={`Refresh Transcript`}
                                                 aria-label={`Refresh Transcript`}
-                                >
+                                            >
                                                 🔄
-                                </button>
+                                            </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
                                             )}
                                         </>
                                     )}
-                            </div>
+                                </div>
                             </div>
                             {/* Right panel with reduced spacing */}
                             <div className={`w-full md:w-2/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
                                 <div className="flex flex-col h-full min-h-0" style={{ flex: 1 }}>
-                                {rightPanelTab === 'Video' && embedUrl && (
+                                    {rightPanelTab === 'Video' && embedUrl && (
                                         <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
-                                )}
-                                {rightPanelTab === 'Quiz' && qnaText && (
-                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                        {/* Sticky Header */}
-                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                             style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                            <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                            <button
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                onClick={() => handleRefresh('Quiz')}
-                                                title="Refresh Quiz"
-                                                aria-label="Refresh Quiz"
+                                    )}
+                                    {rightPanelTab === 'Quiz' && qnaText && (
+                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                            {/* Sticky Header */}
+                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                <button
+                                                    className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                    onClick={() => handleRefresh('Quiz')}
+                                                    title="Refresh Quiz"
+                                                    aria-label="Refresh Quiz"
+                                                >
+                                                    🔄
+                                                </button>
+                                            </div>
+                                            {/* Scrollable Content */}
+                                            <div
+                                                id="right-quiz-content"
+                                                ref={quizContainerRef}
+                                                className="flex-1 overflow-y-auto custom-scrollbar"
+                                                style={{ minHeight: 0, maxHeight: '60vh' }}
                                             >
-                                                🔄
-                                            </button>
+                                                <QuizPanel qnaText={qnaText} />
+                                            </div>
                                         </div>
-                                        {/* Scrollable Content */}
-                                        <div
-                                            id="right-quiz-content"
-                                            ref={quizContainerRef}
-                                            className="flex-1 overflow-y-auto custom-scrollbar"
-                                            style={{ minHeight: 0, maxHeight: '60vh' }}
-                                        >
-                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                                let question = '';
-                                                let answer = '';
-                                                if (lines.length > 0) {
-                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                    if (qIdx !== -1) {
-                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    } else {
-                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    }
-                                                    const nextQIdx = answer.indexOf('###');
-                                                    if (nextQIdx !== -1) {
-                                                        answer = answer.slice(0, nextQIdx).trim();
-                                                    }
-                                                }
-                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                                if (isJunkQuestion && !answer) return null;
-                                                if (isJunkQuestion) question = '';
-                                                if (!question && !answer) return null;
-                                                return (
-                                                    <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
-                                                        <div className="flex flex-col w-full max-w-full">
-                                                            {question && (
-                                                                <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                     style={{ fontWeight: 800 }}>{question}</div>
-                                                            )}
-                                                            {answer && (
-                                                                <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-                                {rightPanelTab === 'Chat' && (
-                                    <ChatPanel
-                                        theme={theme}
-                                        chatInput={chatInput}
-                                        setChatInput={setChatInput}
-                                        handleChatSubmit={handleChatSubmit}
-                                        showDropdown={showDropdown}
-                                        setShowDropdown={setShowDropdown}
-                                        suggestedData={suggestedData}
-                                        inputRef={inputRef}
-                                        chatContainerRef={chatContainerRef}
-                                        chatHistory={chatHistory}
-                                        chatLoading={chatLoading}
-                                    />
-                                )}
-                            </div>
+                                    )}
+                                    {rightPanelTab === 'Chat' && (
+                                        <ChatPanel
+                                            theme={theme}
+                                            chatInput={chatInput}
+                                            setChatInput={setChatInput}
+                                            handleChatSubmit={handleChatSubmit}
+                                            showDropdown={showDropdown}
+                                            setShowDropdown={setShowDropdown}
+                                            suggestedData={suggestedData}
+                                            inputRef={inputRef}
+                                            chatContainerRef={chatContainerRef}
+                                            chatHistory={chatHistory}
+                                            chatLoading={chatLoading}
+                                        />
+                                    )}
+                                </div>
                                 {/* Right panel tabs with smaller size */}
                                 <div className="flex flex-row items-center justify-between gap-2 mt-4 mb-3 w-full">
                                     <div className="flex gap-2">
@@ -1434,49 +1400,49 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 )}
                                             </button>
                                         ))}
-                        </div>
+                                    </div>
                                     {/* Quiz action buttons ONLY in right panel, always visible */}
                                     {rightPanelTab === 'Quiz' && (
                                         <div className="flex gap-2">
-                                        <button
-                                            onClick={() => {
-                                                if (!qnaText) return;
-                                                const content = qnaText;
-                                                const label = 'Quiz';
-                                                exportToPDF(content, label, transcript);
-                                            }}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            title={qnaText ? 'Download PDF' : 'No quiz to download'}
-                                            aria-label="Download as PDF"
-                                            disabled={!qnaText}
-                                        >
-                                            ⬇️
-                                        </button>
-                                        <button
-                                            onClick={copyRightQuizContent}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
-                                            aria-label="Copy Quiz"
-                                            disabled={!qnaText}
-                                        >
-                                            📄
-                                        </button>
-                                        <button
-                                            onClick={() => handleRefresh('Quiz')}
-                                            className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                            title="Regenerate Quiz"
-                                            aria-label="Regenerate Quiz"
-                                        >
-                                            🔄
-                                        </button>
-                                        {copied && copiedPanel === 'right' && (
-                                            <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
-                                        )}
-                    </div>
+                                            <button
+                                                onClick={() => {
+                                                    if (!qnaText) return;
+                                                    const content = qnaText;
+                                                    const label = 'Quiz';
+                                                    exportToPDF(content, label, transcript);
+                                                }}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                title={qnaText ? 'Download PDF' : 'No quiz to download'}
+                                                aria-label="Download as PDF"
+                                                disabled={!qnaText}
+                                            >
+                                                ⬇️
+                                            </button>
+                                            <button
+                                                onClick={copyRightQuizContent}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
+                                                aria-label="Copy Quiz"
+                                                disabled={!qnaText}
+                                            >
+                                                📄
+                                            </button>
+                                            <button
+                                                onClick={() => handleRefresh('Quiz')}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                title="Regenerate Quiz"
+                                                aria-label="Regenerate Quiz"
+                                            >
+                                                🔄
+                                            </button>
+                                            {copied && copiedPanel === 'right' && (
+                                                <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
+                                            )}
+                                        </div>
                                     )}
-                </div>
-            </div>
-        </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
