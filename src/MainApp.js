@@ -1019,8 +1019,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                     onKeyDown={e => {
                                             if (e.key === 'Enter' && url.trim()) {
                                                 handleUrlSubmit();
-                                            }
-                                        }}
+                                        }
+                                      }}
                                         aria-label="Enter URL"
                                 />
                                 <button
@@ -1118,9 +1118,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                 {outputTab === 'Transcript' && (
                                         <h2 className="topic-title text-base">Transcript<br></br></h2>
                                     )}
-                                    {outputTab === 'Summary' && (
-                                        <h2 className="topic-title text-base">Summary<br></br></h2>
-                                    )}
+                                    
 
                                     {outputTab === 'Transcript' && (
                                         <div
@@ -1154,59 +1152,89 @@ export default function MainApp({ theme, toggleTheme }) {
                                         </div>
                                     )}
                                     {outputTab === 'Summary' && summary && (
-                                    <div
+                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                        {/* Sticky Header */}
+                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                             style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
+                                            <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                            <button
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                onClick={() => handleRefresh('Summary')}
+                                                title="Refresh Summary"
+                                                aria-label="Refresh Summary"
+                                            >
+                                                🔄
+                                            </button>
+                                        </div>
+                                        {/* Scrollable Content */}
+                                        <div
                                             id="summary-content"
-                                        ref={summaryContainerRef}
+                                            ref={summaryContainerRef}
                                             style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
-                                    >
-                                        <MarkdownSummary summary={summary} theme={theme} />
+                                        >
+                                            <MarkdownSummary summary={summary} theme={theme} />
+                                        </div>
                                     </div>
                                 )}
                                 {outputTab === 'Quiz' && qnaText && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                    <div
-                                                id="right-quiz-content"
-                                        ref={quizContainerRef}
-                                                className="flex-1 overflow-y-auto custom-scrollbar mb-3"
-                                                style={{ minHeight: 0, maxHeight: '60vh' }}
+                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                        {/* Sticky Header */}
+                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                             style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                            <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                            <button
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                onClick={() => handleRefresh('Quiz')}
+                                                title="Refresh Quiz"
+                                                aria-label="Refresh Quiz"
                                             >
-                                                {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                                    let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                                    let question = '';
-                                                    let answer = '';
-                                                    if (lines.length > 0) {
-                                                        const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                        if (qIdx !== -1) {
-                                                            question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                            answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        } else {
-                                                            question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                            answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        }
-                                                        const nextQIdx = answer.indexOf('###');
-                                                        if (nextQIdx !== -1) {
-                                                            answer = answer.slice(0, nextQIdx).trim();
-                                                        }
+                                                🔄
+                                            </button>
+                                        </div>
+                                        {/* Scrollable Content */}
+                                        <div
+                                            id="right-quiz-content"
+                                            ref={quizContainerRef}
+                                            className="flex-1 overflow-y-auto custom-scrollbar"
+                                            style={{ minHeight: 0, maxHeight: '60vh' }}
+                                        >
+                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                                let question = '';
+                                                let answer = '';
+                                                if (lines.length > 0) {
+                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                    if (qIdx !== -1) {
+                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    } else {
+                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
                                                     }
-                                                    const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                                    if (isJunkQuestion && !answer) return null;
-                                                    if (isJunkQuestion) question = '';
-                                                    if (!question && !answer) return null;
-                                                    return (
-                                                        <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
-                                                            <div className="flex flex-col w-full max-w-full">
-                                                                {question && (
-                                                                    <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                         style={{ fontWeight: 800 }}>{question}</div>
-                                                                )}
-                                                                {answer && (
-                                                                    <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
-                                                                )}
-                                                            </div>
+                                                    const nextQIdx = answer.indexOf('###');
+                                                    if (nextQIdx !== -1) {
+                                                        answer = answer.slice(0, nextQIdx).trim();
+                                                    }
+                                                }
+                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                                if (isJunkQuestion && !answer) return null;
+                                                if (isJunkQuestion) question = '';
+                                                if (!question && !answer) return null;
+                                                return (
+                                                    <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
+                                                        <div className="flex flex-col w-full max-w-full">
+                                                            {question && (
+                                                                <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
+                                                                     style={{ fontWeight: 800 }}>{question}</div>
+                                                            )}
+                                                            {answer && (
+                                                                <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
+                                                            )}
                                                         </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                             </div>
@@ -1235,7 +1263,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     const content = summary;
                                                     const label = 'Summary';
                                                     exportToPDF(content, label, transcript);
-                                                }}
+                                            }}
                                                 className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={summary ? 'Download PDF' : 'No summary to download'}
                                             aria-label="Download as PDF"
@@ -1257,7 +1285,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 onClick={() => handleRefresh('Summary')}
                                                 title={`Refresh Summary`}
                                                 aria-label={`Refresh Summary`}
-                                            >
+                                        >
                                                 🔄
                                         </button>
                                             {copied && copiedPanel === 'left' && (
@@ -1295,7 +1323,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 onClick={() => handleRefresh('Transcript')}
                                                 title={`Refresh Transcript`}
                                                 aria-label={`Refresh Transcript`}
-                                            >
+                                >
                                                 🔄
                                 </button>
                                             {copied && copiedPanel === 'left' && (
@@ -1312,50 +1340,64 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                 )}
                                 {rightPanelTab === 'Quiz' && qnaText && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            <div
-                                                id="right-quiz-content"
-                                                ref={quizContainerRef}
-                                                className="flex-1 overflow-y-auto custom-scrollbar mb-3"
-                                                style={{ minHeight: 0, maxHeight: '60vh' }}
+                                    <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                        {/* Sticky Header */}
+                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                             style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                            <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                            <button
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                onClick={() => handleRefresh('Quiz')}
+                                                title="Refresh Quiz"
+                                                aria-label="Refresh Quiz"
                                             >
-                                        {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                            let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                            let question = '';
-                                            let answer = '';
-                                            if (lines.length > 0) {
-                                                const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                if (qIdx !== -1) {
-                                                    question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                } else {
-                                                    question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                    answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                🔄
+                                            </button>
+                                        </div>
+                                        {/* Scrollable Content */}
+                                        <div
+                                            id="right-quiz-content"
+                                            ref={quizContainerRef}
+                                            className="flex-1 overflow-y-auto custom-scrollbar"
+                                            style={{ minHeight: 0, maxHeight: '60vh' }}
+                                        >
+                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                                let question = '';
+                                                let answer = '';
+                                                if (lines.length > 0) {
+                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                    if (qIdx !== -1) {
+                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    } else {
+                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    }
+                                                    const nextQIdx = answer.indexOf('###');
+                                                    if (nextQIdx !== -1) {
+                                                        answer = answer.slice(0, nextQIdx).trim();
+                                                    }
                                                 }
-                                                const nextQIdx = answer.indexOf('###');
-                                                if (nextQIdx !== -1) {
-                                                    answer = answer.slice(0, nextQIdx).trim();
-                                                }
-                                            }
-                                            const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                            if (isJunkQuestion && !answer) return null;
-                                            if (isJunkQuestion) question = '';
-                                            if (!question && !answer) return null;
-                                            return (
+                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                                if (isJunkQuestion && !answer) return null;
+                                                if (isJunkQuestion) question = '';
+                                                if (!question && !answer) return null;
+                                                return (
                                                     <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
-                                                    <div className="flex flex-col w-full max-w-full">
-                                                        {question && (
+                                                        <div className="flex flex-col w-full max-w-full">
+                                                            {question && (
                                                                 <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                 style={{ fontWeight: 800 }}>{question}</div>
-                                                        )}
-                                                        {answer && (
+                                                                     style={{ fontWeight: 800 }}>{question}</div>
+                                                            )}
+                                                            {answer && (
                                                                 <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{marginTop: question ? '-2px' : undefined}}>{answer}</div>
-                                                        )}
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            );
-                                        })}
-                                            </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                                 {rightPanelTab === 'Chat' && (
@@ -1392,7 +1434,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 )}
                                             </button>
                                         ))}
-                                    </div>
+                        </div>
                                     {/* Quiz action buttons ONLY in right panel, always visible */}
                                     {rightPanelTab === 'Quiz' && (
                                         <div className="flex gap-2">
@@ -1430,9 +1472,9 @@ export default function MainApp({ theme, toggleTheme }) {
                                         {copied && copiedPanel === 'right' && (
                                             <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
                                         )}
-                                        </div>
+                    </div>
                                     )}
-                                </div>
+                </div>
             </div>
         </div>
                     </div>

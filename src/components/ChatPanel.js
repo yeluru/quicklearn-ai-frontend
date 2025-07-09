@@ -3,6 +3,27 @@ import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 
+// Map Unicode math italic letters to ASCII
+function normalizeMathUnicode(str) {
+  const mathMap = {};
+  for (let i = 0; i < 26; i++) {
+    mathMap[String.fromCodePoint(0x1D434 + i)] = String.fromCharCode(65 + i);
+    mathMap[String.fromCodePoint(0x1D44E + i)] = String.fromCharCode(97 + i);
+  }
+  for (let i = 0; i < 10; i++) {
+    mathMap[String.fromCodePoint(0x1D7CE + i)] = String.fromCharCode(48 + i);
+  }
+  const greekLower = 'αβγδεζηθικλμνξοπρστυφχψω';
+  for (let i = 0; i < greekLower.length; i++) {
+    mathMap[String.fromCodePoint(0x1D6FC + i)] = greekLower[i];
+  }
+  const greekUpper = 'ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ';
+  for (let i = 0; i < greekUpper.length; i++) {
+    mathMap[String.fromCodePoint(0x1D6A8 + i)] = greekUpper[i];
+  }
+  return str.replace(/[\u{1D400}-\u{1D7FF}]/gu, c => mathMap[c] || c);
+}
+
 export default function ChatPanel({
     theme,
     chatInput,
@@ -106,7 +127,7 @@ export default function ChatPanel({
                                                 <strong className={`${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</strong>,
                                         }}
                                     >
-                                        {pair.userMsg.content}
+                                        {normalizeMathUnicode(pair.userMsg.content)}
                                     </ReactMarkdown>
                                 </div>
                             )}
@@ -118,7 +139,7 @@ export default function ChatPanel({
                                                 <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>{children}</strong>,
                                         }}
                                     >
-                                        {pair.botMsg.content}
+                                        {normalizeMathUnicode(pair.botMsg.content)}
                                     </ReactMarkdown>
                                 </div>
                             )}
