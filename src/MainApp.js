@@ -1284,14 +1284,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                             >
                                                 📄
                                             </button>
-                                            <button
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                onClick={() => handleRefresh('Summary')}
-                                                title={`Refresh Summary`}
-                                                aria-label={`Refresh Summary`}
-                                            >
-                                                🔄
-                                            </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
                                             )}
@@ -1322,16 +1314,38 @@ export default function MainApp({ theme, toggleTheme }) {
                                             >
                                                 📄
                                             </button>
-                                            <button
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                onClick={() => handleRefresh('Transcript')}
-                                                title={`Refresh Transcript`}
-                                                aria-label={`Refresh Transcript`}
-                                            >
-                                                🔄
-                                            </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
+                                            )}
+                                        </>
+                                    )}
+                                    {outputTab === 'Quiz' && (
+                                        <>
+                                            <button
+                                                onClick={() => {
+                                                    if (!qnaText) return;
+                                                    const content = qnaText;
+                                                    const label = 'Quiz';
+                                                    exportToPDF(content, label, transcript);
+                                                }}
+                                                className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                title={qnaText ? 'Download PDF' : 'No quiz to download'}
+                                                aria-label="Download as PDF"
+                                                disabled={!qnaText}
+                                            >
+                                                ⬇️
+                                            </button>
+                                            <button
+                                                onClick={copyRightQuizContent}
+                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                                title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
+                                                aria-label="Copy Quiz"
+                                                disabled={!qnaText}
+                                            >
+                                                📄
+                                            </button>
+                                            {copied && copiedPanel === 'right' && (
+                                                <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
                                             )}
                                         </>
                                     )}
@@ -1449,14 +1463,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!qnaText}
                                             >
                                                 📄
-                                            </button>
-                                            <button
-                                                onClick={() => handleRefresh('Quiz')}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                title="Regenerate Quiz"
-                                                aria-label="Regenerate Quiz"
-                                            >
-                                                🔄
                                             </button>
                                             {copied && copiedPanel === 'right' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
