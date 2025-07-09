@@ -1117,39 +1117,42 @@ export default function MainApp({ theme, toggleTheme }) {
                                     style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '70vh' }}
                                 >
                                     {outputTab === 'Transcript' && (
-                                        <h2 className="topic-title text-base">Transcript<br></br></h2>
-                                    )}
-
-
-                                    {outputTab === 'Transcript' && (
-                                        <div
-                                            id="transcript-content"
-                                            ref={transcriptContainerRef}
-                                            className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
-                                        >
-                                            {transcriptSegments.length > 0 ? (
-                                                <div>
-                                                    {transcriptSegments.map((seg, idx) => (
-                                                        <div key={idx} style={{ marginBottom: 6 }}>
-                                                            <span
-                                                                style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }}
-                                                                onClick={() => seekTo(seg.start)}
-                                                                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }}
-                                                                role="button"
-                                                                tabIndex={0}
-                                                                aria-label={`Jump to ${formatTime(seg.start)}`}
-                                                            >
-                                                                [{formatTime(seg.start)}]
-                                                            </span>
-                                                            {seg.text}
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            ) : (
-                                                <div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
-                                                    {transcript || 'Your transcript will appear here once processed.'}
-                                                </div>
-                                            )}
+                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                            {/* Sticky Header */}
+                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
+                                            </div>
+                                            {/* Scrollable Content */}
+                                            <div
+                                                id="transcript-content"
+                                                ref={transcriptContainerRef}
+                                                className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
+                                            >
+                                                {transcriptSegments.length > 0 ? (
+                                                    <div>
+                                                        {transcriptSegments.map((seg, idx) => (
+                                                            <div key={idx} style={{ marginBottom: 6 }}>
+                                                                <span
+                                                                    style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }}
+                                                                    onClick={() => seekTo(seg.start)}
+                                                                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }}
+                                                                    role="button"
+                                                                    tabIndex={0}
+                                                                    aria-label={`Jump to ${formatTime(seg.start)}`}
+                                                                >
+                                                                    [{formatTime(seg.start)}]
+                                                                </span>
+                                                                {seg.text}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
+                                                        {transcript || 'Your transcript will appear here once processed.'}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                     {outputTab === 'Summary' && summary && (
@@ -1338,7 +1341,17 @@ export default function MainApp({ theme, toggleTheme }) {
                             <div className={`w-full md:w-2/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
                                 <div className="flex flex-col h-full min-h-0" style={{ flex: 1 }}>
                                     {rightPanelTab === 'Video' && embedUrl && (
-                                        <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
+                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                            {/* Sticky Header */}
+                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
+                                            </div>
+                                            {/* Scrollable Content */}
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                                <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
+                                            </div>
+                                        </div>
                                     )}
                                     {rightPanelTab === 'Quiz' && qnaText && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
@@ -1367,19 +1380,29 @@ export default function MainApp({ theme, toggleTheme }) {
                                         </div>
                                     )}
                                     {rightPanelTab === 'Chat' && (
-                                        <ChatPanel
-                                            theme={theme}
-                                            chatInput={chatInput}
-                                            setChatInput={setChatInput}
-                                            handleChatSubmit={handleChatSubmit}
-                                            showDropdown={showDropdown}
-                                            setShowDropdown={setShowDropdown}
-                                            suggestedData={suggestedData}
-                                            inputRef={inputRef}
-                                            chatContainerRef={chatContainerRef}
-                                            chatHistory={chatHistory}
-                                            chatLoading={chatLoading}
-                                        />
+                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
+                                            {/* Sticky Header */}
+                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
+                                            </div>
+                                            {/* Scrollable Content */}
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                                <ChatPanel
+                                                    theme={theme}
+                                                    chatInput={chatInput}
+                                                    setChatInput={setChatInput}
+                                                    handleChatSubmit={handleChatSubmit}
+                                                    showDropdown={showDropdown}
+                                                    setShowDropdown={setShowDropdown}
+                                                    suggestedData={suggestedData}
+                                                    inputRef={inputRef}
+                                                    chatContainerRef={chatContainerRef}
+                                                    chatHistory={chatHistory}
+                                                    chatLoading={chatLoading}
+                                                />
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
                                 {/* Right panel tabs with smaller size */}
