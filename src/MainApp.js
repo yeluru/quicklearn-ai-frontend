@@ -811,7 +811,7 @@ export default function MainApp({ theme, toggleTheme }) {
             doc.text(line, 10, y);
             y += 10;
         });
-        doc.save(`${topicTitle || 'QuickLearn'}_${label}.pdf`);
+        doc.save(`${topicTitle || 'VibeKnowing'}_${label}.pdf`);
     }
 
     // Helper to detect website scraping (not video, not audio, not Google Drive)

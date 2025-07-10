@@ -7,7 +7,7 @@ function LandingPage({ theme, toggleTheme, onStart }) {
     <div className={`${theme === 'dark' ? 'dark bg-gray-800' : 'bg-gradient-to-br from-gray-50 via-purple-50/50 to-gray-50'} min-h-screen font-sans`}>
       {/* Navbar */}
       <nav className="flex justify-between items-center p-6">
-        <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`}>QuickLearn.AI</h1>
+        <h1 className={`text-3xl font-bold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`}>VibeKnowing</h1>
         <button
           onClick={toggleTheme}
           className={`p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110`}
