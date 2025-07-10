@@ -986,8 +986,8 @@ export default function MainApp({ theme, toggleTheme }) {
                 <div className="flex flex-col h-screen">
                     <div className="w-full px-3 pt-2">
                         <div className="flex flex-col items-start">
-                            <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} tracking-tight`}>QuickLearn</h1>
-                            <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered learning companion</span>
+                            <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} tracking-tight`}>VibeKnowing</h1>
+                            <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
                             <br />
                         </div>
                         <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
