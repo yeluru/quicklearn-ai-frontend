@@ -512,24 +512,24 @@ export default function MainApp({ theme, toggleTheme }) {
                 try {
                     abortControllerRef.current = new AbortController();
                     const response = await fetch(`${process.env.REACT_APP_API_BASE_URL}/transcript/stream`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ url: url }),
                         signal: abortControllerRef.current.signal
-                    });
+            });
 
-                    if (!response.ok) {
+            if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
+            }
 
-                    const reader = response.body.getReader();
-                    const decoder = new TextDecoder('utf-8');
-                    let done = false;
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let done = false;
 
-                    while (!done) {
-                        const { value, done: isDone } = await reader.read();
-                        if (value) {
-                            const chunk = decoder.decode(value);
+            while (!done) {
+                const { value, done: isDone } = await reader.read();
+                if (value) {
+                    const chunk = decoder.decode(value);
                             chunk.split(/\n\n+/).forEach(line => {
                                 if (line.trim().startsWith('data:')) {
                                     try {
@@ -539,18 +539,18 @@ export default function MainApp({ theme, toggleTheme }) {
                                             setTranscript(prev => prev + data.content + '\n');
                                         } else if (data.type === 'progress' && data.message) {
                                             setLoadingMessage(data.message);
-                                        } else if (data.type === 'complete') {
-                                            setIsTranscriptComplete(true);
-                                        } else if (data.type === 'error') {
+                                } else if (data.type === 'complete') {
+                                    setIsTranscriptComplete(true);
+                                } else if (data.type === 'error') {
                                             alert(data.message || 'Failed to process audio. Please ensure the URL provides direct access to an audio file.');
-                                        }
+                                }
                                     } catch (e) {
                                         // Ignore parse errors for incomplete chunks
-                                    }
-                                }
-                            });
+                            }
                         }
-                        done = isDone;
+                            });
+                }
+                done = isDone;
                     }
                 } catch (error) {
                     if (error.name === 'AbortError') return;
@@ -567,8 +567,8 @@ export default function MainApp({ theme, toggleTheme }) {
             alert('Error extracting transcript.');
             setIsTranscriptComplete(true);
         }
-        setLoading(false);
-        setLoadingMessage('');
+            setLoading(false);
+            setLoadingMessage('');
     };
 
     const streamOutput = useCallback(async (type, force = false) => {
@@ -908,7 +908,7 @@ export default function MainApp({ theme, toggleTheme }) {
         if (!url) return false;
         try {
             const urlObj = new URL(url);
-            return (
+    return (
                 urlObj.hostname.includes('youtube.com') ||
                 urlObj.hostname.includes('youtu.be') ||
                 urlObj.hostname.includes('vimeo.com') ||
@@ -992,60 +992,60 @@ export default function MainApp({ theme, toggleTheme }) {
                         </div>
                         <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
                             <div className="flex gap-2 mb-4 relative">
-                                {INPUT_TABS.map(tab => (
-                                    <button
-                                        key={tab}
-                                        onClick={() => setInputTab(tab)}
+                            {INPUT_TABS.map(tab => (
+                                <button
+                                    key={tab}
+                                    onClick={() => setInputTab(tab)}
                                         className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${inputTab === tab
-                                            ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
-                                            : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
-                                            }`}
-                                        aria-label={`Select ${tab} input`}
-                                    >
-                                        {tab}
-                                        {inputTab === tab && (
-                                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-100 transition-transform duration-300" />
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+                                        ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
+                                        : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
+                                        }`}
+                                    aria-label={`Select ${tab} input`}
+                                >
+                                    {tab}
+                                    {inputTab === tab && (
+                                        <span className="absolute bottom-0 left-0 w-full h-0.5 bg-purple-400 transform scale-x-100 transition-transform duration-300" />
+                                    )}
+                                </button>
+                            ))}
+                        </div>
                             {/* Input sections with reduced spacing */}
                             {inputTab === 'URL' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <input
+                                <input
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         placeholder="Paste a URL here (YouTube, Vimeo, Spotify, Website, etc.)..."
-                                        value={url}
-                                        onChange={e => setUrl(e.target.value)}
-                                        onKeyDown={e => {
+                                    value={url}
+                                    onChange={e => setUrl(e.target.value)}
+                                    onKeyDown={e => {
                                             if (e.key === 'Enter' && url.trim()) {
                                                 handleUrlSubmit();
                                             }
                                         }}
                                         aria-label="Enter URL"
-                                    />
-                                    <button
+                                />
+                                <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleUrlSubmit}
-                                        aria-label="Analyze input"
+                                    aria-label="Analyze input"
                                         style={{ whiteSpace: 'nowrap' }}
                                         disabled={loading || !url.trim()}
-                                    >
-                                        Analyze
-                                    </button>
-                                </div>
+                                >
+                                    Analyze
+                                </button>
+                            </div>
                             )}
                             {inputTab === 'Text' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <textarea
+                                <textarea
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         rows={2}
-                                        placeholder="Paste raw text here..."
-                                        value={textInput}
-                                        onChange={e => setTextInput(e.target.value)}
-                                        aria-label="Enter text input"
+                                    placeholder="Paste raw text here..."
+                                    value={textInput}
+                                    onChange={e => setTextInput(e.target.value)}
+                                    aria-label="Enter text input"
                                         style={{ resize: 'vertical' }}
-                                    />
+                                />
                                     <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleGetTranscript}
@@ -1059,8 +1059,8 @@ export default function MainApp({ theme, toggleTheme }) {
                             )}
                             {inputTab === 'File' && (
                                 <div className="flex flex-row gap-2 mb-3 items-center w-full">
-                                    <input
-                                        type="file"
+                                <input
+                                    type="file"
                                         accept=".pdf,.doc,.docx,.txt,.mp4,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.aiff"
                                         className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
                                         onChange={e => {
@@ -1074,49 +1074,49 @@ export default function MainApp({ theme, toggleTheme }) {
                                             setOutputTab('Transcript');
                                             setRightPanelTab('Chat');
                                         }}
-                                        aria-label="Upload file"
-                                    />
-                                    <button
+                                    aria-label="Upload file"
+                                />
+                                <button
                                         className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={handleGetTranscript}
-                                        aria-label="Upload and extract"
+                                    onClick={handleGetTranscript}
+                                    aria-label="Upload and extract"
                                         style={{ whiteSpace: 'nowrap' }}
                                         disabled={loading || !file}
-                                    >
-                                        Upload & Extract
-                                    </button>
-                                </div>
-                            )}
+                                >
+                                    Upload & Extract
+                                </button>
+                            </div>
+                        )}
                             {/* Loading modal with smaller size */}
-                            {loading && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                        {loading && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                                     <div className="flex flex-col items-center justify-center p-6 rounded-xl glassmorphism">
                                         <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
                                         <p className="text-white text-sm font-medium mt-3">
-                                            {loadingMessage}
-                                        </p>
+                                        {loadingMessage}
+                                    </p>
                                         <button
                                             className={`mt-4 px-4 py-1.5 rounded-lg text-xs font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
                                             onClick={handleCancel}
                                         >
                                             Cancel
                                         </button>
-                                    </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
+                    </div>
                         {/* Main content area with reduced spacing */}
                         <div className="flex flex-col md:flex-row gap-3 h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] mt-3">
-                            <div
+                        <div
                                 className={`w-full md:w-3/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}
                                 style={{ maxHeight: '80vh', minHeight: 0, flexBasis: 0, flexGrow: 1 }}
-                            >
-                                <div
-                                    id="output-container"
+                        >
+                            <div
+                                id="output-container"
                                     className="flex-1 min-h-0 rounded-lg p-4 shadow-inner text-sm prose max-w-none bg-opacity-50 transition-all duration-300"
                                     style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '70vh' }}
-                                >
-                                    {outputTab === 'Transcript' && (
+                            >
+                                {outputTab === 'Transcript' && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             {/* Sticky Header */}
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1125,8 +1125,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                             </div>
                                             {/* Scrollable Content */}
                                             <div
-                                                id="transcript-content"
-                                                ref={transcriptContainerRef}
+                                        id="transcript-content"
+                                        ref={transcriptContainerRef}
                                                 className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
                                             >
                                                 {transcriptSegments.length > 0 ? (
@@ -1149,7 +1149,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     </div>
                                                 ) : (
                                                     <div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
-                                                        {transcript || 'Your transcript will appear here once processed.'}
+                                        {transcript || 'Your transcript will appear here once processed.'}
                                                     </div>
                                                 )}
                                             </div>
@@ -1173,14 +1173,14 @@ export default function MainApp({ theme, toggleTheme }) {
                                             {/* Scrollable Content */}
                                             <div
                                                 id="summary-content"
-                                                ref={summaryContainerRef}
+                                        ref={summaryContainerRef}
                                                 style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
-                                            >
-                                                <MarkdownSummary summary={summary} theme={theme} />
+                                    >
+                                        <MarkdownSummary summary={summary} theme={theme} />
                                             </div>
-                                        </div>
-                                    )}
-                                    {outputTab === 'Quiz' && qnaText && (
+                                    </div>
+                                )}
+                                {outputTab === 'Quiz' && qnaText && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             {/* Sticky Header */}
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1198,7 +1198,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             {/* Scrollable Content */}
                                             <div
                                                 id="right-quiz-content"
-                                                ref={quizContainerRef}
+                                        ref={quizContainerRef}
                                                 className="flex-1 overflow-y-auto custom-scrollbar"
                                                 style={{ minHeight: 0, maxHeight: '60vh' }}
                                             >
@@ -1239,30 +1239,30 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     );
                                                 })}
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
+                                    </div>
+                                )}
+                            </div>
                                 {/* Action buttons with smaller size */}
                                 <div className="flex flex-wrap gap-2 items-center mt-4 mb-3">
                                     {getOutputTabs().map(tab => (
-                                        <div key={tab} className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => setOutputTab(tab)}
+                                    <div key={tab} className="flex items-center gap-2">
+                                        <button
+                                            onClick={() => setOutputTab(tab)}
                                                 className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
-                                                aria-label={`Select ${tab} output`}
-                                            >
-                                                {tab}
-                                                {outputTab === tab && (
-                                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
-                                                )}
-                                            </button>
-                                        </div>
-                                    ))}
+                                            aria-label={`Select ${tab} output`}
+                                        >
+                                            {tab}
+                                            {outputTab === tab && (
+                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
                                     {/* Action buttons with smaller size */}
                                     {outputTab === 'Summary' && (
-                                        <>
-                                            <button
-                                                onClick={() => {
+                                    <>
+                                        <button
+                                            onClick={() => {
                                                     if (!summary) return;
                                                     const content = summary;
                                                     const label = 'Summary';
@@ -1270,11 +1270,11 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 }}
                                                 className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={summary ? 'Download PDF' : 'No summary to download'}
-                                                aria-label="Download as PDF"
+                                            aria-label="Download as PDF"
                                                 disabled={!summary}
-                                            >
+                                        >
                                                 ⬇️
-                                            </button>
+                                        </button>
                                             <button
                                                 onClick={copyRenderedContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
@@ -1291,7 +1291,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                     )}
                                     {outputTab === 'Transcript' && (
                                         <>
-                                            <button
+                                        <button
                                                 onClick={() => {
                                                     if (!transcript) return;
                                                     const content = transcript;
@@ -1304,8 +1304,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!transcript}
                                             >
                                                 ⬇️
-                                            </button>
-                                            <button
+                                        </button>
+                                    <button
                                                 onClick={copyRenderedContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={transcript ? 'Copy content with formatting' : 'No transcript to copy'}
@@ -1313,15 +1313,15 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!transcript}
                                             >
                                                 📄
-                                            </button>
+                                    </button>
                                             {copied && copiedPanel === 'left' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
-                                            )}
+                                )}
                                         </>
                                     )}
                                     {outputTab === 'Quiz' && (
                                         <>
-                                            <button
+                                <button
                                                 onClick={() => {
                                                     if (!qnaText) return;
                                                     const content = qnaText;
@@ -1334,8 +1334,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!qnaText}
                                             >
                                                 ⬇️
-                                            </button>
-                                            <button
+                                </button>
+                                <button
                                                 onClick={copyRightQuizContent}
                                                 className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
@@ -1343,18 +1343,18 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 disabled={!qnaText}
                                             >
                                                 📄
-                                            </button>
+                                </button>
                                             {copied && copiedPanel === 'right' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
                                             )}
                                         </>
                                     )}
-                                </div>
+                            </div>
                             </div>
                             {/* Right panel with reduced spacing */}
                             <div className={`w-full md:w-2/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
                                 <div className="flex flex-col h-full min-h-0" style={{ flex: 1 }}>
-                                    {rightPanelTab === 'Video' && embedUrl && (
+                                {rightPanelTab === 'Video' && embedUrl && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             {/* Sticky Header */}
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1366,8 +1366,8 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                             </div>
                                         </div>
-                                    )}
-                                    {rightPanelTab === 'Quiz' && qnaText && (
+                                )}
+                                {rightPanelTab === 'Quiz' && qnaText && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             {/* Sticky Header */}
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1381,7 +1381,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 >
                                                     🔄
                                                 </button>
-                                            </div>
+                                                    </div>
                                             {/* Scrollable Content */}
                                             <div
                                                 id="right-quiz-content"
@@ -1390,10 +1390,10 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 style={{ minHeight: 0, maxHeight: '60vh' }}
                                             >
                                                 <QuizPanel qnaText={qnaText} />
-                                            </div>
-                                        </div>
-                                    )}
-                                    {rightPanelTab === 'Chat' && (
+                                                </div>
+                                    </div>
+                                )}
+                                {rightPanelTab === 'Chat' && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             {/* Sticky Header */}
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1402,23 +1402,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                             </div>
                                             {/* Scrollable Content */}
                                             <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
-                                                <ChatPanel
-                                                    theme={theme}
-                                                    chatInput={chatInput}
-                                                    setChatInput={setChatInput}
-                                                    handleChatSubmit={handleChatSubmit}
-                                                    showDropdown={showDropdown}
-                                                    setShowDropdown={setShowDropdown}
-                                                    suggestedData={suggestedData}
-                                                    inputRef={inputRef}
-                                                    chatContainerRef={chatContainerRef}
-                                                    chatHistory={chatHistory}
-                                                    chatLoading={chatLoading}
-                                                />
+                                    <ChatPanel
+                                        theme={theme}
+                                        chatInput={chatInput}
+                                        setChatInput={setChatInput}
+                                        handleChatSubmit={handleChatSubmit}
+                                        showDropdown={showDropdown}
+                                        setShowDropdown={setShowDropdown}
+                                        suggestedData={suggestedData}
+                                        inputRef={inputRef}
+                                        chatContainerRef={chatContainerRef}
+                                        chatHistory={chatHistory}
+                                        chatLoading={chatLoading}
+                                    />
                                             </div>
                                         </div>
-                                    )}
-                                </div>
+                                )}
+                            </div>
                                 {/* Right panel tabs with smaller size */}
                                 <div className="flex flex-row items-center justify-between gap-2 mt-4 mb-3 w-full">
                                     <div className="flex gap-2">
@@ -1437,7 +1437,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 )}
                                             </button>
                                         ))}
-                                    </div>
+                        </div>
                                     {/* Quiz action buttons ONLY in right panel, always visible */}
                                     {rightPanelTab === 'Quiz' && (
                                         <div className="flex gap-2">
@@ -1467,11 +1467,11 @@ export default function MainApp({ theme, toggleTheme }) {
                                             {copied && copiedPanel === 'right' && (
                                                 <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
                                             )}
-                                        </div>
+                    </div>
                                     )}
-                                </div>
-                            </div>
-                        </div>
+                </div>
+            </div>
+        </div>
                     </div>
                 </div>
             </div>
