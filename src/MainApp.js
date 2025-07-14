@@ -579,9 +579,15 @@ export default function MainApp({ theme, toggleTheme }) {
         const setter = type === 'summary' ? setSummary : setQnaText;
         const value = type === 'summary' ? summary : qnaText;
         if (!force && value) return;
+        
+        console.log(`Starting ${type} generation:`, { force, hasExistingValue: !!value, transcriptLength: transcript.length });
+        
         setter('');
         setLoading(true);
         setLoadingType(type);
+        
+        console.log(`Set loading state:`, { loading: true, loadingType: type });
+        
         try {
             abortControllerRef.current = new AbortController();
             const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}${url}`, {
@@ -606,11 +612,15 @@ export default function MainApp({ theme, toggleTheme }) {
             if (type === 'summary') {
                 setSummary(content);
             }
+            console.log(`${type} generation completed:`, { contentLength: content.length });
         } catch (err) {
             if (err.name === 'AbortError') return;
+            console.error(`Error generating ${type}:`, err);
             alert(`Error generating ${type}`);
         }
         setLoading(false);
+        setLoadingType(null);
+        console.log(`Cleared loading state:`, { loading: false, loadingType: null });
     }, [transcript, summary, qnaText]);
 
     const handleChatSubmit = useCallback(async (customMessage = null) => {
@@ -734,12 +744,12 @@ export default function MainApp({ theme, toggleTheme }) {
 
     // Add useEffect to trigger quiz endpoint when rightPanelTab is 'Quiz'
     useEffect(() => {
-        if (rightPanelTab === 'Quiz' && transcript && !qnaText) {
+        if (rightPanelTab === 'Quiz' && transcript && isTranscriptComplete && !qnaText) {
             streamOutput('qna');
         }
         // Optionally, refresh quiz if transcript changes
         // eslint-disable-next-line
-    }, [rightPanelTab, transcript]);
+    }, [rightPanelTab, transcript, isTranscriptComplete, qnaText]);
 
     // Removed problematic useEffect that was auto-switching from Video to Chat
 
@@ -1162,7 +1172,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <MarkdownSummary summary={summary} theme={theme} />
                                                 ) : (
                                                     <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                        No summary available yet.
+                                                        Genereating Summary.
                                                     </div>
                                                 )}
                                             </div>
@@ -1212,7 +1222,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <QuizPanel qnaText={qnaText} />
                                                 ) : (
                                                     <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                        No quiz available yet.
+                                                        Generating Quiz.
                                                     </div>
                                                 )}
                                             </div>
