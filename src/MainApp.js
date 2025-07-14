@@ -1000,7 +1000,7 @@ export default function MainApp({ theme, toggleTheme }) {
                     <div className="w-full px-3 pt-2">
                         <div className="flex flex-col items-start">
                             <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} tracking-tight`}>VibeKnowing</h1>
-                            <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
+                            <span className={`text-base sm:text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
                             <br />
                         </div>
                         <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
@@ -1009,7 +1009,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                     <button
                                         key={tab}
                                         onClick={() => setInputTab(tab)}
-                                        className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${inputTab === tab
+                                        className={`relative px-3 py-1.5 rounded-lg text-base sm:text-xs transition-all duration-300 ease-in-out ${inputTab === tab
                                             ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
                                             : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
                                             }`}
@@ -1038,7 +1038,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         aria-label="Enter URL"
                                     />
                                     <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleUrlSubmit}
                                         aria-label="Analyze input"
                                         style={{ whiteSpace: 'nowrap' }}
@@ -1060,7 +1060,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         style={{ resize: 'vertical' }}
                                     />
                                     <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleGetTranscript}
                                         aria-label="Submit text"
                                         style={{ whiteSpace: 'nowrap' }}
@@ -1090,7 +1090,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         aria-label="Upload file"
                                     />
                                     <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                         onClick={handleGetTranscript}
                                         aria-label="Upload and extract"
                                         style={{ whiteSpace: 'nowrap' }}
@@ -1122,11 +1122,11 @@ export default function MainApp({ theme, toggleTheme }) {
                             <div className="flex flex-col gap-3 mt-3">
                                 {/* Mobile tab bar */}
                                 <div className="flex flex-row flex-wrap items-center justify-between gap-2 mb-3 w-full sticky top-0 z-20 bg-opacity-90 backdrop-blur-md rounded-t-xl">
-                                    {['Transcript', 'Summary', 'Video', 'Quiz', 'Chat'].map(tab => (
+                                    {[...(isVideoUrl(url) ? ['Transcript', 'Summary', 'Video', 'Quiz', 'Chat'] : ['Transcript', 'Summary', 'Quiz', 'Chat'])].map(tab => (
                                         <button
                                             key={tab}
                                             onClick={() => setMobileTab(tab)}
-                                            className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${mobileTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
+                                            className={`relative px-3 py-1.5 rounded-lg text-base sm:text-xs transition-all duration-300 ease-in-out ${mobileTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
                                             aria-label={`${tab} Tab`}
                                             style={{ minWidth: 60 }}
                                         >
@@ -1143,7 +1143,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
+                                                <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
                                             </div>
                                             <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
                                         </div>
@@ -1152,23 +1152,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                                <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
                                                 <div className="flex gap-2 ml-auto">
                                                     <button
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                         onClick={() => streamOutput('summary', true)}
                                                         title="Refresh Summary"
                                                         aria-label="Refresh Summary"
                                                     >🔄</button>
                                                     <button
                                                         onClick={() => exportToPDF(summary, 'Summary', transcript)}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                         title="Download PDF"
                                                         aria-label="Download as PDF"
                                                     >⬇️</button>
                                                     <button
                                                         onClick={copyRenderedContent}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                         title="Copy content"
                                                         aria-label="Copy content"
                                                     >📄</button>
@@ -1183,7 +1183,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <div className="flex flex-col flex-1 min-h-0">
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
+                                                <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
                                             </div>
                                             <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
                                                 <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
@@ -1194,23 +1194,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <div className="flex flex-col flex-1 min-h-0">
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
                                                 <div className="flex gap-2 ml-auto">
                                                     <button
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                         onClick={() => streamOutput('qna', true)}
                                                         title="Refresh Quiz"
                                                         aria-label="Refresh Quiz"
                                                     >🔄</button>
                                                     <button
                                                         onClick={() => exportToPDF(qnaText, 'Quiz', transcript)}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                         title="Download PDF"
                                                         aria-label="Download as PDF"
                                                     >⬇️</button>
                                                     <button
                                                         onClick={copyRightQuizContent}
-                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                         title="Copy Quiz"
                                                         aria-label="Copy Quiz"
                                                     >📄</button>
@@ -1225,7 +1225,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <div className="flex flex-col flex-1 min-h-0">
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
+                                                <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
                                             </div>
                                             <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
                                                 <ChatPanel
@@ -1240,6 +1240,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     chatContainerRef={chatContainerRef}
                                                     chatHistory={chatHistory}
                                                     chatLoading={chatLoading}
+                                                    isMobile={isMobile}
                                                 />
                                             </div>
                                         </div>
@@ -1264,7 +1265,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                        <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
+                                                        <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div
@@ -1303,23 +1304,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
-                                                        <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                                        <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
                                                         <div className="flex gap-2 ml-auto">
                                                             <button
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 onClick={() => streamOutput('summary', true)}
                                                                 title="Refresh Summary"
                                                                 aria-label="Refresh Summary"
                                                             >🔄</button>
                                                             <button
                                                                 onClick={() => exportToPDF(summary, 'Summary', transcript)}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 title="Download PDF"
                                                                 aria-label="Download as PDF"
                                                             >⬇️</button>
                                                             <button
                                                                 onClick={copyRenderedContent}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 title="Copy content"
                                                                 aria-label="Copy content"
                                                             >📄</button>
@@ -1340,23 +1341,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                        <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                        <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
                                                         <div className="flex gap-2 ml-auto">
                                                             <button
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 onClick={() => streamOutput('qna', true)}
                                                                 title="Refresh Quiz"
                                                                 aria-label="Refresh Quiz"
                                                             >🔄</button>
                                                             <button
                                                                 onClick={() => exportToPDF(qnaText, 'Quiz', transcript)}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 title="Download PDF"
                                                                 aria-label="Download as PDF"
                                                             >⬇️</button>
                                                             <button
                                                                 onClick={copyRightQuizContent}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 title="Copy Quiz"
                                                                 aria-label="Copy Quiz"
                                                             >📄</button>
@@ -1491,7 +1492,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                        <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
+                                                        <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
@@ -1504,23 +1505,23 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                        <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                        <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
                                                         <div className="flex gap-2 ml-auto">
                                                             <button
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 onClick={() => streamOutput('qna', true)}
                                                                 title="Refresh Quiz"
                                                                 aria-label="Refresh Quiz"
                                                             >🔄</button>
                                                             <button
                                                                 onClick={() => exportToPDF(qnaText, 'Quiz', transcript)}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 title="Download PDF"
                                                                 aria-label="Download as PDF"
                                                             >⬇️</button>
                                                             <button
                                                                 onClick={copyRightQuizContent}
-                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                                 title="Copy Quiz"
                                                                 aria-label="Copy Quiz"
                                                             >📄</button>
@@ -1542,7 +1543,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                        <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
+                                                        <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
@@ -1558,6 +1559,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                             chatContainerRef={chatContainerRef}
                                                             chatHistory={chatHistory}
                                                             chatLoading={chatLoading}
+                                                            isMobile={isMobile}
                                                         />
                                                     </div>
                                                 </div>
