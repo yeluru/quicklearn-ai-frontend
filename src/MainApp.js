@@ -582,7 +582,6 @@ export default function MainApp({ theme, toggleTheme }) {
         setter('');
         setLoading(true);
         setLoadingType(type);
-        setLoadingMessage(type === 'summary' ? 'Preparing summary...' : 'Preparing Quiz...');
         try {
             abortControllerRef.current = new AbortController();
             const res = await fetch(`${process.env.REACT_APP_API_BASE_URL}${url}`, {
@@ -612,7 +611,6 @@ export default function MainApp({ theme, toggleTheme }) {
             alert(`Error generating ${type}`);
         }
         setLoading(false);
-        setLoadingMessage('');
     }, [transcript, summary, qnaText]);
 
     const handleChatSubmit = useCallback(async (customMessage = null) => {
@@ -1116,9 +1114,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
                                     <div className="flex flex-col items-center justify-center p-6 rounded-xl glassmorphism">
                                         <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                                        <p className="text-white text-sm font-medium mt-3">
-                                            {loadingMessage}
-                                        </p>
                                         <button
                                             className={`mt-4 px-4 py-1.5 rounded-lg text-xs font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
                                             onClick={handleCancel}
