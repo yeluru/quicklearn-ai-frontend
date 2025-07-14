@@ -1158,11 +1158,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             </div>
                                             <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}>
-                                                {loading && loadingType === 'summary' ? (
-                                                    <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                        Generating summary...
-                                                    </div>
-                                                ) : summary ? (
+                                                {summary ? (
                                                     <MarkdownSummary summary={summary} theme={theme} />
                                                 ) : (
                                                     <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1212,11 +1208,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             </div>
                                             <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
-                                                {loading && loadingType === 'quiz' ? (
-                                                    <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                        Generating quiz...
-                                                    </div>
-                                                ) : qnaText ? (
+                                                {qnaText ? (
                                                     <QuizPanel qnaText={qnaText} />
                                                 ) : (
                                                     <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1340,11 +1332,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         ref={summaryContainerRef}
                                                         style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
                                                     >
-                                                        {loading && loadingType === 'summary' ? (
-                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                                Generating summary...
-                                                            </div>
-                                                        ) : summary ? (
+                                                        {summary ? (
                                                             <MarkdownSummary summary={summary} theme={theme} />
                                                         ) : (
                                                             <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1389,11 +1377,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         className="flex-1 overflow-y-auto custom-scrollbar"
                                                         style={{ minHeight: 0, maxHeight: '60vh' }}
                                                     >
-                                                        {loading && loadingType === 'quiz' ? (
-                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                                Generating quiz...
-                                                            </div>
-                                                        ) : qnaText ? (
+                                                        {qnaText ? (
                                                             <QuizPanel qnaText={qnaText} />
                                                         ) : (
                                                             <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -1565,11 +1549,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         className="flex-1 overflow-y-auto custom-scrollbar"
                                                         style={{ minHeight: 0, maxHeight: '60vh' }}
                                                     >
-                                                        {loading && loadingType === 'quiz' ? (
-                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                                Generating quiz...
-                                                            </div>
-                                                        ) : qnaText ? (
+                                                        {qnaText ? (
                                                             <QuizPanel qnaText={qnaText} />
                                                         ) : (
                                                             <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
