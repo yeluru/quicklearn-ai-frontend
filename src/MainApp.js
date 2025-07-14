@@ -1136,6 +1136,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
+                                                {loading && loadingType === 'transcript' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                             </div>
                                             <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
                                         </div>
@@ -1145,6 +1146,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                                {loading && loadingType === 'summary' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                 <div className="flex gap-2 ml-auto">
                                                     <button
                                                         className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
@@ -1176,6 +1178,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
+                                                {loading && loadingType === 'videoSummary' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                             </div>
                                             <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
                                                 <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
@@ -1187,6 +1190,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                {loading && loadingType === 'quiz' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                 <div className="flex gap-2 ml-auto">
                                                     <button
                                                         className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
@@ -1218,6 +1222,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
+                                                {loading && loadingType === 'chat' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                             </div>
                                             <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
                                                 <ChatPanel
@@ -1258,6 +1263,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
+                                                        {loading && loadingType === 'transcript' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div
@@ -1297,6 +1303,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
                                                         <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                                        {loading && loadingType === 'summary' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                         <div className="flex gap-2 ml-auto">
                                                             <button
                                                                 className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
@@ -1334,6 +1341,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                        {loading && loadingType === 'quiz' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                         <div className="flex gap-2 ml-auto">
                                                             <button
                                                                 className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
@@ -1485,6 +1493,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
+                                                        {loading && loadingType === 'videoSummary' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
@@ -1498,6 +1507,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                        {loading && loadingType === 'quiz' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                         <div className="flex gap-2 ml-auto">
                                                             <button
                                                                 className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
@@ -1536,6 +1546,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
+                                                        {loading && loadingType === 'chat' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
