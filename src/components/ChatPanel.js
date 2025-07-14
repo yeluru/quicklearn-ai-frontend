@@ -77,7 +77,12 @@ export default function ChatPanel({
                     </button>
                 </div>
                 {showDropdown && suggestedData.length > 0 && (
-                    <div className={`absolute left-0 right-0 w-full ${isMobile ? 'z-30 min-h-[120px] max-h-[50vh] overflow-y-auto' : 'z-20 max-h-48 overflow-auto'} shadow-xl rounded-lg mt-1 glassmorphism`} style={{ top: '100%' }}>
+                    <div
+                        className="fixed left-0 right-0 w-full z-30 max-h-[50vh] overflow-y-auto shadow-xl rounded-lg mt-1 glassmorphism"
+                        style={{
+                            top: inputRef.current ? inputRef.current.getBoundingClientRect().bottom + window.scrollY : '100px',
+                        }}
+                    >
                         <div className={`${theme === 'dark' ? 'bg-gray-800/70 border-gray-700' : 'bg-white/70 border-gray-300'} animate-fade-in`}>
                             {suggestedData.map((item, idx) => (
                                 <div key={idx} className={`border-b px-3 py-2 transition-all duration-200 hover:bg-purple-500/20 ${theme === 'dark' ? 'border-gray-700' : 'border-gray-300'}`}>
