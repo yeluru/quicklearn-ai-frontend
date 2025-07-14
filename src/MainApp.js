@@ -791,7 +791,7 @@ export default function MainApp({ theme, toggleTheme }) {
             streamOutput('qna');
         }
         // eslint-disable-next-line
-    }, [mobileTab, transcript, isTranscriptComplete]);
+    }, [mobileTab, transcript, isTranscriptComplete, summary, qnaText]);
 
     const handleCancel = () => {
         if (abortControllerRef.current) {
@@ -1153,6 +1153,26 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
                                                 <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                                <div className="flex gap-2 ml-auto">
+                                                    <button
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        onClick={() => streamOutput('summary', true)}
+                                                        title="Refresh Summary"
+                                                        aria-label="Refresh Summary"
+                                                    >🔄</button>
+                                                    <button
+                                                        onClick={() => exportToPDF(summary, 'Summary', transcript)}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        title="Download PDF"
+                                                        aria-label="Download as PDF"
+                                                    >⬇️</button>
+                                                    <button
+                                                        onClick={copyRenderedContent}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        title="Copy content"
+                                                        aria-label="Copy content"
+                                                    >📄</button>
+                                                </div>
                                             </div>
                                             <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}>
                                                 <MarkdownSummary summary={summary} theme={theme} />
@@ -1175,6 +1195,26 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                 <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                <div className="flex gap-2 ml-auto">
+                                                    <button
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        onClick={() => streamOutput('qna', true)}
+                                                        title="Refresh Quiz"
+                                                        aria-label="Refresh Quiz"
+                                                    >🔄</button>
+                                                    <button
+                                                        onClick={() => exportToPDF(qnaText, 'Quiz', transcript)}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        title="Download PDF"
+                                                        aria-label="Download as PDF"
+                                                    >⬇️</button>
+                                                    <button
+                                                        onClick={copyRightQuizContent}
+                                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                        title="Copy Quiz"
+                                                        aria-label="Copy Quiz"
+                                                    >📄</button>
+                                                </div>
                                             </div>
                                             <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
                                                 <QuizPanel qnaText={qnaText} />
@@ -1264,14 +1304,26 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
                                                         <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
-                                                        <button
-                                                            className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                            onClick={() => handleRefresh('Summary')}
-                                                            title="Refresh Summary"
-                                                            aria-label="Refresh Summary"
-                                                        >
-                                                            🔄
-                                                        </button>
+                                                        <div className="flex gap-2 ml-auto">
+                                                            <button
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                onClick={() => streamOutput('summary', true)}
+                                                                title="Refresh Summary"
+                                                                aria-label="Refresh Summary"
+                                                            >🔄</button>
+                                                            <button
+                                                                onClick={() => exportToPDF(summary, 'Summary', transcript)}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                title="Download PDF"
+                                                                aria-label="Download as PDF"
+                                                            >⬇️</button>
+                                                            <button
+                                                                onClick={copyRenderedContent}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                title="Copy content"
+                                                                aria-label="Copy content"
+                                                            >📄</button>
+                                                        </div>
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div
@@ -1289,14 +1341,26 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                                        <button
-                                                            className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                            onClick={() => handleRefresh('Quiz')}
-                                                            title="Refresh Quiz"
-                                                            aria-label="Refresh Quiz"
-                                                        >
-                                                            🔄
-                                                        </button>
+                                                        <div className="flex gap-2 ml-auto">
+                                                            <button
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                onClick={() => streamOutput('qna', true)}
+                                                                title="Refresh Quiz"
+                                                                aria-label="Refresh Quiz"
+                                                            >🔄</button>
+                                                            <button
+                                                                onClick={() => exportToPDF(qnaText, 'Quiz', transcript)}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                title="Download PDF"
+                                                                aria-label="Download as PDF"
+                                                            >⬇️</button>
+                                                            <button
+                                                                onClick={copyRightQuizContent}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                title="Copy Quiz"
+                                                                aria-label="Copy Quiz"
+                                                            >📄</button>
+                                                        </div>
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div
@@ -1441,14 +1505,26 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                         style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                         <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                                        <button
-                                                            className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                            onClick={() => handleRefresh('Quiz')}
-                                                            title="Refresh Quiz"
-                                                            aria-label="Refresh Quiz"
-                                                        >
-                                                            🔄
-                                                        </button>
+                                                        <div className="flex gap-2 ml-auto">
+                                                            <button
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                onClick={() => streamOutput('qna', true)}
+                                                                title="Refresh Quiz"
+                                                                aria-label="Refresh Quiz"
+                                                            >🔄</button>
+                                                            <button
+                                                                onClick={() => exportToPDF(qnaText, 'Quiz', transcript)}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                title="Download PDF"
+                                                                aria-label="Download as PDF"
+                                                            >⬇️</button>
+                                                            <button
+                                                                onClick={copyRightQuizContent}
+                                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                                title="Copy Quiz"
+                                                                aria-label="Copy Quiz"
+                                                            >📄</button>
+                                                        </div>
                                                     </div>
                                                     {/* Scrollable Content */}
                                                     <div
