@@ -1109,20 +1109,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                     </button>
                                 </div>
                             )}
-                            {/* Loading modal with smaller size */}
-                            {loading && (
-                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-                                    <div className="flex flex-col items-center justify-center p-6 rounded-xl glassmorphism">
-                                        <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                                        <button
-                                            className={`mt-4 px-4 py-1.5 rounded-lg text-xs font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
-                                            onClick={handleCancel}
-                                        >
-                                            Cancel
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </div>
                         {isMobile ? (
                             <div className="flex flex-col gap-3 mt-3">
