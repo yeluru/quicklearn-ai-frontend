@@ -782,6 +782,17 @@ export default function MainApp({ theme, toggleTheme }) {
         }
     }, [embedUrl, url]);
 
+    useEffect(() => {
+        if (!isMobile) return;
+        if (mobileTab === 'Summary' && transcript && isTranscriptComplete && !summary) {
+            streamOutput('summary');
+        }
+        if (mobileTab === 'Quiz' && transcript && isTranscriptComplete && !qnaText) {
+            streamOutput('qna');
+        }
+        // eslint-disable-next-line
+    }, [mobileTab, transcript, isTranscriptComplete]);
+
     const handleCancel = () => {
         if (abortControllerRef.current) {
             abortControllerRef.current.abort();
