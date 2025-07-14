@@ -978,25 +978,30 @@ export default function MainApp({ theme, toggleTheme }) {
                 {/* Absolutely positioned theme toggle button */}
                 <button
                     onClick={toggleTheme}
-                    className={`absolute top-4 right-4 p-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110 z-50`}
+                    className={`absolute top-4 right-4 p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all duration-200 ${theme === 'dark' ? 'bg-gray-800 text-yellow-400' : 'bg-white text-gray-800'} hover:scale-110 z-50`}
                     aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
                 >
                     {theme === 'dark' ? <FaSun size={20} /> : <FaMoon size={20} />}
                 </button>
+                
                 <div className="flex flex-col h-screen">
-                    <div className="w-full px-3 pt-2">
+                    {/* Header Section */}
+                    <div className="w-full px-4 pt-4 pb-2">
                         <div className="flex flex-col items-start">
-                            <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} tracking-tight`}>VibeKnowing</h1>
-                            <span className={`text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
-                            <br />
+                            <h1 className={`text-3xl md:text-2xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} tracking-tight`}>VibeKnowing</h1>
+                            <span className={`text-sm md:text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
                         </div>
-                        <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
-                            <div className="flex gap-2 mb-4 relative">
+                    </div>
+
+                    {/* Input Section */}
+                    <div className={`mx-4 mb-4 shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
+                        {/* Input Tabs */}
+                        <div className="flex gap-2 mb-4">
                             {INPUT_TABS.map(tab => (
                                 <button
                                     key={tab}
                                     onClick={() => setInputTab(tab)}
-                                        className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${inputTab === tab
+                                    className={`relative px-4 py-2 md:px-3 md:py-1.5 rounded-lg text-sm md:text-xs font-medium transition-all duration-300 ease-in-out ${inputTab === tab
                                         ? `${theme === 'dark' ? 'bg-purple-600 text-white' : 'bg-purple-500 text-white'}`
                                         : `${theme === 'dark' ? 'bg-gray-800/50 text-purple-300 hover:bg-gray-700/50' : 'bg-gray-200 text-purple-600 hover:bg-gray-300'}`
                                         }`}
@@ -1009,469 +1014,457 @@ export default function MainApp({ theme, toggleTheme }) {
                                 </button>
                             ))}
                         </div>
-                            {/* Input sections with reduced spacing */}
-                            {inputTab === 'URL' && (
-                                <div className="flex flex-row gap-2 mb-3 items-center w-full">
+
+                        {/* Input Fields */}
+                        {inputTab === 'URL' && (
+                            <div className="flex flex-col md:flex-row gap-3 mb-3">
                                 <input
-                                        className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
-                                        placeholder="Paste a URL here (YouTube, Vimeo, Spotify, Website, etc.)..."
+                                    className="px-4 py-3 md:px-3 md:py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base md:text-sm w-full"
+                                    placeholder="Paste a URL here (YouTube, Vimeo, Spotify, Website, etc.)..."
                                     value={url}
                                     onChange={e => setUrl(e.target.value)}
                                     onKeyDown={e => {
-                                            if (e.key === 'Enter' && url.trim()) {
-                                                handleUrlSubmit();
-                                            }
-                                        }}
-                                        aria-label="Enter URL"
+                                        if (e.key === 'Enter' && url.trim()) {
+                                            handleUrlSubmit();
+                                        }
+                                    }}
+                                    aria-label="Enter URL"
                                 />
                                 <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={handleUrlSubmit}
+                                    className={`px-6 py-3 md:px-3 md:py-1.5 rounded-lg text-base md:text-xs font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    onClick={handleUrlSubmit}
                                     aria-label="Analyze input"
-                                        style={{ whiteSpace: 'nowrap' }}
-                                        disabled={loading || !url.trim()}
+                                    disabled={loading || !url.trim()}
                                 >
                                     Analyze
                                 </button>
                             </div>
-                            )}
-                            {inputTab === 'Text' && (
-                                <div className="flex flex-row gap-2 mb-3 items-center w-full">
+                        )}
+
+                        {inputTab === 'Text' && (
+                            <div className="flex flex-col md:flex-row gap-3 mb-3">
                                 <textarea
-                                        className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
-                                        rows={2}
+                                    className="px-4 py-3 md:px-3 md:py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base md:text-sm w-full"
+                                    rows={3}
                                     placeholder="Paste raw text here..."
                                     value={textInput}
                                     onChange={e => setTextInput(e.target.value)}
                                     aria-label="Enter text input"
-                                        style={{ resize: 'vertical' }}
+                                    style={{ resize: 'vertical' }}
                                 />
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                        onClick={handleGetTranscript}
-                                        aria-label="Submit text"
-                                        style={{ whiteSpace: 'nowrap' }}
-                                        disabled={loading || !textInput.trim()}
-                                    >
-                                        Submit Text
-                                    </button>
-                                </div>
-                            )}
-                            {inputTab === 'File' && (
-                                <div className="flex flex-row gap-2 mb-3 items-center w-full">
+                                <button
+                                    className={`px-6 py-3 md:px-3 md:py-1.5 rounded-lg text-base md:text-xs font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    onClick={handleGetTranscript}
+                                    aria-label="Submit text"
+                                    disabled={loading || !textInput.trim()}
+                                >
+                                    Submit Text
+                                </button>
+                            </div>
+                        )}
+
+                        {inputTab === 'File' && (
+                            <div className="flex flex-col md:flex-row gap-3 mb-3">
                                 <input
                                     type="file"
-                                        accept=".pdf,.doc,.docx,.txt,.mp4,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.aiff"
-                                        className="px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-sm w-full"
-                                        onChange={e => {
-                                            const selectedFile = e.target.files[0];
-                                            setFile(selectedFile);
-                                            setTranscript('');
-                                            setTranscriptSegments([]);
-                                            setSummary('');
-                                            setQnaText('');
-                                            setIsTranscriptComplete(false);
-                                            setOutputTab('Transcript');
-                                            setRightPanelTab('Chat');
-                                        }}
+                                    accept=".pdf,.doc,.docx,.txt,.mp4,.mp3,.wav,.m4a,.aac,.ogg,.flac,.wma,.aiff"
+                                    className="px-4 py-3 md:px-3 md:py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base md:text-sm w-full"
+                                    onChange={e => {
+                                        const selectedFile = e.target.files[0];
+                                        setFile(selectedFile);
+                                        setTranscript('');
+                                        setTranscriptSegments([]);
+                                        setSummary('');
+                                        setQnaText('');
+                                        setIsTranscriptComplete(false);
+                                        setOutputTab('Transcript');
+                                        setRightPanelTab('Chat');
+                                    }}
                                     aria-label="Upload file"
                                 />
                                 <button
-                                        className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                    className={`px-6 py-3 md:px-3 md:py-1.5 rounded-lg text-base md:text-xs font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     onClick={handleGetTranscript}
                                     aria-label="Upload and extract"
-                                        style={{ whiteSpace: 'nowrap' }}
-                                        disabled={loading || !file}
+                                    disabled={loading || !file}
                                 >
                                     Upload & Extract
                                 </button>
                             </div>
                         )}
-                            {/* Loading modal with smaller size */}
-                        {loading && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-                                    <div className="flex flex-col items-center justify-center p-6 rounded-xl glassmorphism">
-                                        <div className="w-8 h-8 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
-                                        <p className="text-white text-sm font-medium mt-3">
-                                        {loadingMessage}
-                                    </p>
-                                        <button
-                                            className={`mt-4 px-4 py-1.5 rounded-lg text-xs font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
-                                            onClick={handleCancel}
-                                        >
-                                            Cancel
-                                        </button>
-                                </div>
-                            </div>
-                        )}
                     </div>
-                        {/* Main content area with reduced spacing */}
-                        <div className="flex flex-col md:flex-row gap-3 h-[calc(100vh-12rem)] sm:h-[calc(100vh-14rem)] mt-3">
-                        <div
-                                className={`w-full md:w-3/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}
-                                style={{ maxHeight: '80vh', minHeight: 0, flexBasis: 0, flexGrow: 1 }}
-                        >
-                            <div
-                                id="output-container"
-                                    className="flex-1 min-h-0 rounded-lg p-4 shadow-inner text-sm prose max-w-none bg-opacity-50 transition-all duration-300"
-                                    style={{ display: 'flex', flexDirection: 'column', flexBasis: 0, flexGrow: 1, minHeight: 0, maxHeight: '70vh' }}
-                            >
-                                {outputTab === 'Transcript' && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            {/* Sticky Header */}
-                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
-                                            </div>
-                                            {/* Scrollable Content */}
-                                            <div
-                                        id="transcript-content"
-                                        ref={transcriptContainerRef}
-                                                className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
-                                            >
-                                                {transcriptSegments.length > 0 ? (
-                                                    <div>
-                                                        {transcriptSegments.map((seg, idx) => (
-                                                            <div key={idx} style={{ marginBottom: 6 }}>
-                                                                <span
-                                                                    style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }}
-                                                                    onClick={() => seekTo(seg.start)}
-                                                                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }}
-                                                                    role="button"
-                                                                    tabIndex={0}
-                                                                    aria-label={`Jump to ${formatTime(seg.start)}`}
-                                                                >
-                                                                    [{formatTime(seg.start)}]
-                                                                </span>
-                                                                {seg.text}
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                ) : (
-                                                    <div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>
-                                        {transcript || 'Your transcript will appear here once processed.'}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
-                                    {outputTab === 'Summary' && summary && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            {/* Sticky Header */}
-                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
-                                                <button
-                                                    className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                    onClick={() => handleRefresh('Summary')}
-                                                    title="Refresh Summary"
-                                                    aria-label="Refresh Summary"
-                                                >
-                                                    🔄
-                                                </button>
-                                            </div>
-                                            {/* Scrollable Content */}
-                                            <div
-                                                id="summary-content"
-                                        ref={summaryContainerRef}
-                                                style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
+
+                    {/* Loading Modal */}
+                    {loading && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
+                            <div className="flex flex-col items-center justify-center p-8 rounded-xl glassmorphism mx-4">
+                                <div className="w-12 h-12 border-4 border-purple-400 border-t-transparent rounded-full animate-spin"></div>
+                                <p className="text-white text-lg font-medium mt-4 text-center">
+                                    {loadingMessage}
+                                </p>
+                                <button
+                                    className={`mt-6 px-6 py-3 rounded-lg text-base font-semibold text-white ${theme === 'dark' ? 'bg-red-600 hover:bg-red-700' : 'bg-red-500 hover:bg-red-600'}`}
+                                    onClick={handleCancel}
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Main Content Area - Mobile Stacked, Desktop Side-by-side */}
+                    <div className="flex flex-col lg:flex-row gap-4 px-4 pb-4 flex-1 min-h-0">
+                        {/* Left Panel - Main Content */}
+                        <div className={`w-full lg:w-3/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
+                            {/* Output Tabs */}
+                            <div className="flex gap-2 mb-4">
+                                {getOutputTabs().map(tab => (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setOutputTab(tab)}
+                                        className={`relative px-4 py-2 md:px-3 md:py-1.5 rounded-lg text-sm md:text-xs font-medium transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
+                                        aria-label={`Select ${tab} output`}
                                     >
-                                        <MarkdownSummary summary={summary} theme={theme} />
-                                            </div>
+                                        {tab}
+                                        {outputTab === tab && (
+                                            <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Content Area */}
+                            <div className="flex-1 min-h-0 rounded-lg bg-opacity-50 transition-all duration-300 overflow-hidden">
+                                {outputTab === 'Transcript' && (
+                                    <div className="flex flex-col h-full">
+                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-3 px-4 rounded-t-lg"
+                                            style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                            <span className="text-lg md:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
+                                        </div>
+                                        <div
+                                            id="transcript-content"
+                                            ref={transcriptContainerRef}
+                                            className={`flex-1 overflow-y-auto p-4 custom-scrollbar ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}
+                                        >
+                                            {transcriptSegments.length > 0 ? (
+                                                <div className="space-y-3">
+                                                    {transcriptSegments.map((seg, idx) => (
+                                                        <div key={idx} className="flex items-start space-x-2">
+                                                            <span
+                                                                className="text-blue-500 cursor-pointer text-sm font-mono flex-shrink-0 mt-1"
+                                                                onClick={() => seekTo(seg.start)}
+                                                                onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                aria-label={`Jump to ${formatTime(seg.start)}`}
+                                                            >
+                                                                [{formatTime(seg.start)}]
+                                                            </span>
+                                                            <span className="text-sm leading-relaxed">{seg.text}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            ) : (
+                                                <div className={`text-sm leading-relaxed ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>
+                                                    {transcript || 'Your transcript will appear here once processed.'}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
-                                {outputTab === 'Quiz' && qnaText && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            {/* Sticky Header */}
-                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                                <button
-                                                    className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
-                                                    onClick={() => handleRefresh('Quiz')}
-                                                    title="Refresh Quiz"
-                                                    aria-label="Refresh Quiz"
-                                                >
-                                                    🔄
-                                                </button>
-                                            </div>
-                                            {/* Scrollable Content */}
-                                            <div
-                                                id="right-quiz-content"
-                                        ref={quizContainerRef}
-                                                className="flex-1 overflow-y-auto custom-scrollbar"
-                                                style={{ minHeight: 0, maxHeight: '60vh' }}
+
+                                {outputTab === 'Summary' && summary && (
+                                    <div className="flex flex-col h-full">
+                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-3 px-4 rounded-t-lg"
+                                            style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                            <span className="text-lg md:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Summary</span>
+                                            <button
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                onClick={() => handleRefresh('Summary')}
+                                                title="Refresh Summary"
+                                                aria-label="Refresh Summary"
                                             >
-                                                {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
-                                                    let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
-                                                    let question = '';
-                                                    let answer = '';
-                                                    if (lines.length > 0) {
-                                                        const qIdx = lines.findIndex(l => l.startsWith('###'));
-                                                        if (qIdx !== -1) {
-                                                            question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                            answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        } else {
-                                                            question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                            answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
-                                                        }
-                                                        const nextQIdx = answer.indexOf('###');
-                                                        if (nextQIdx !== -1) {
-                                                            answer = answer.slice(0, nextQIdx).trim();
-                                                        }
+                                                🔄
+                                            </button>
+                                        </div>
+                                        <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                                            <MarkdownSummary summary={summary} theme={theme} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {outputTab === 'Quiz' && qnaText && (
+                                    <div className="flex flex-col h-full">
+                                        <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-3 px-4 rounded-t-lg"
+                                            style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                            <span className="text-lg md:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                            <button
+                                                className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                onClick={() => handleRefresh('Quiz')}
+                                                title="Refresh Quiz"
+                                                aria-label="Refresh Quiz"
+                                            >
+                                                🔄
+                                            </button>
+                                        </div>
+                                        <div
+                                            id="right-quiz-content"
+                                            ref={quizContainerRef}
+                                            className="flex-1 overflow-y-auto p-4 custom-scrollbar"
+                                        >
+                                            {qnaText.split(/\n{2,}/).filter(Boolean).map((block, idx) => {
+                                                let lines = block.split('\n').map(l => l.trim()).filter(Boolean);
+                                                let question = '';
+                                                let answer = '';
+                                                if (lines.length > 0) {
+                                                    const qIdx = lines.findIndex(l => l.startsWith('###'));
+                                                    if (qIdx !== -1) {
+                                                        question = lines[qIdx].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(qIdx + 1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                    } else {
+                                                        question = lines[0].replace(/^###\s*:?\s*/, '').replace(/\*\*Answer:\*\*/g, '').trim();
+                                                        answer = lines.slice(1).join(' ').replace(/\*\*Answer:\*\*/g, '').trim();
                                                     }
-                                                    const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
-                                                    if (isJunkQuestion && !answer) return null;
-                                                    if (isJunkQuestion) question = '';
-                                                    if (!question && !answer) return null;
-                                                    return (
-                                                        <div key={idx} className="mb-3 flex flex-col w-full animate-fade-in">
-                                                            <div className="flex flex-col w-full max-w-full">
-                                                                {question && (
-                                                                    <div className={`px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-xs font-extrabold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}
-                                                                        style={{ fontWeight: 800 }}>{question}</div>
-                                                                )}
-                                                                {answer && (
-                                                                    <div className={`px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{ marginTop: question ? '-2px' : undefined }}>{answer}</div>
-                                                                )}
+                                                    const nextQIdx = answer.indexOf('###');
+                                                    if (nextQIdx !== -1) {
+                                                        answer = answer.slice(0, nextQIdx).trim();
+                                                    }
+                                                }
+                                                const isJunkQuestion = !question || /^#+$/.test(question) || !question.replace(/#/g, '').trim();
+                                                if (isJunkQuestion && !answer) return null;
+                                                if (isJunkQuestion) question = '';
+                                                if (!question && !answer) return null;
+                                                return (
+                                                    <div key={idx} className="mb-4 animate-fade-in">
+                                                        {question && (
+                                                            <div className={`px-4 py-3 rounded-t-lg rounded-br-lg w-full text-sm font-bold ${theme === 'dark' ? 'text-purple-300 bg-purple-900/50' : 'text-purple-600 bg-purple-200/50'}`}>
+                                                                {question}
                                                             </div>
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
+                                                        )}
+                                                        {answer && (
+                                                            <div className={`px-4 py-3 rounded-b-lg rounded-tl-lg w-full text-sm ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`} style={{ marginTop: question ? '-2px' : undefined }}>
+                                                                {answer}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
                                 )}
                             </div>
-                                {/* Action buttons with smaller size */}
-                                <div className="flex flex-wrap gap-2 items-center mt-4 mb-3">
-                                    {getOutputTabs().map(tab => (
-                                    <div key={tab} className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => setOutputTab(tab)}
-                                                className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${outputTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
-                                            aria-label={`Select ${tab} output`}
-                                        >
-                                            {tab}
-                                            {outputTab === tab && (
-                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
-                                            )}
-                                        </button>
-                                    </div>
-                                ))}
-                                    {/* Action buttons with smaller size */}
-                                    {outputTab === 'Summary' && (
+
+                            {/* Action Buttons */}
+                            <div className="flex flex-wrap gap-3 items-center mt-4">
+                                {outputTab === 'Summary' && (
                                     <>
                                         <button
                                             onClick={() => {
-                                                    if (!summary) return;
-                                                    const content = summary;
-                                                    const label = 'Summary';
-                                                    exportToPDF(content, label, transcript);
-                                                }}
-                                                className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={summary ? 'Download PDF' : 'No summary to download'}
+                                                if (!summary) return;
+                                                const content = summary;
+                                                const label = 'Summary';
+                                                exportToPDF(content, label, transcript);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={summary ? 'Download PDF' : 'No summary to download'}
                                             aria-label="Download as PDF"
-                                                disabled={!summary}
+                                            disabled={!summary}
                                         >
-                                                ⬇️
+                                            ⬇️ Download
                                         </button>
-                                            <button
-                                                onClick={copyRenderedContent}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={summary ? 'Copy content with formatting' : 'No summary to copy'}
-                                                aria-label="Copy content"
-                                                disabled={!summary}
-                                            >
-                                                📄
-                                            </button>
-                                            {copied && copiedPanel === 'left' && (
-                                                <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
-                                            )}
-                                        </>
-                                    )}
-                                    {outputTab === 'Transcript' && (
-                                        <>
                                         <button
-                                                onClick={() => {
-                                                    if (!transcript) return;
-                                                    const content = transcript;
-                                                    const label = 'Transcript';
-                                                    exportToPDF(content, label, transcript);
-                                                }}
-                                                className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={transcript ? 'Download PDF' : 'No transcript to download'}
-                                                aria-label="Download as PDF"
-                                                disabled={!transcript}
-                                            >
-                                                ⬇️
+                                            onClick={copyRenderedContent}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!summary ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={summary ? 'Copy content with formatting' : 'No summary to copy'}
+                                            aria-label="Copy content"
+                                            disabled={!summary}
+                                        >
+                                            📄 Copy
                                         </button>
-                                    <button
-                                                onClick={copyRenderedContent}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={transcript ? 'Copy content with formatting' : 'No transcript to copy'}
-                                                aria-label="Copy content"
-                                                disabled={!transcript}
-                                            >
-                                                📄
-                                    </button>
-                                            {copied && copiedPanel === 'left' && (
-                                                <span className="ml-2 text-green-400 font-normal animate-fade-in text-xs">Copied!</span>
+                                        {copied && copiedPanel === 'left' && (
+                                            <span className="text-green-400 font-medium animate-fade-in">Copied!</span>
+                                        )}
+                                    </>
                                 )}
-                                        </>
-                                    )}
-                                    {outputTab === 'Quiz' && (
-                                        <>
-                                <button
-                                                onClick={() => {
-                                                    if (!qnaText) return;
-                                                    const content = qnaText;
-                                                    const label = 'Quiz';
-                                                    exportToPDF(content, label, transcript);
-                                                }}
-                                                className={`ml-auto px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={qnaText ? 'Download PDF' : 'No quiz to download'}
-                                                aria-label="Download as PDF"
-                                                disabled={!qnaText}
-                                            >
-                                                ⬇️
-                                </button>
-                                <button
-                                                onClick={copyRightQuizContent}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
-                                                aria-label="Copy Quiz"
-                                                disabled={!qnaText}
-                                            >
-                                                📄
-                                </button>
-                                            {copied && copiedPanel === 'right' && (
-                                                <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
+                                {outputTab === 'Transcript' && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                if (!transcript) return;
+                                                const content = transcript;
+                                                const label = 'Transcript';
+                                                exportToPDF(content, label, transcript);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={transcript ? 'Download PDF' : 'No transcript to download'}
+                                            aria-label="Download as PDF"
+                                            disabled={!transcript}
+                                        >
+                                            ⬇️ Download
+                                        </button>
+                                        <button
+                                            onClick={copyRenderedContent}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!transcript ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={transcript ? 'Copy content with formatting' : 'No transcript to copy'}
+                                            aria-label="Copy content"
+                                            disabled={!transcript}
+                                        >
+                                            📄 Copy
+                                        </button>
+                                        {copied && copiedPanel === 'left' && (
+                                            <span className="text-green-400 font-medium animate-fade-in">Copied!</span>
+                                        )}
+                                    </>
+                                )}
+                                {outputTab === 'Quiz' && (
+                                    <>
+                                        <button
+                                            onClick={() => {
+                                                if (!qnaText) return;
+                                                const content = qnaText;
+                                                const label = 'Quiz';
+                                                exportToPDF(content, label, transcript);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={qnaText ? 'Download PDF' : 'No quiz to download'}
+                                            aria-label="Download as PDF"
+                                            disabled={!qnaText}
+                                        >
+                                            ⬇️ Download
+                                        </button>
+                                        <button
+                                            onClick={copyRightQuizContent}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
+                                            aria-label="Copy Quiz"
+                                            disabled={!qnaText}
+                                        >
+                                            📄 Copy
+                                        </button>
+                                        {copied && copiedPanel === 'right' && (
+                                            <span className="text-green-400 font-medium animate-fade-in">Copied!</span>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Right Panel - Only show on desktop or when there's content */}
+                        {(embedUrl || qnaText || rightPanelTab === 'Chat') && (
+                            <div className={`w-full lg:w-2/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
+                                {/* Right Panel Tabs */}
+                                <div className="flex gap-2 mb-4">
+                                    {getRightPanelTabs().map(tab => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setRightPanelTab(tab)}
+                                            className={`relative px-4 py-2 md:px-3 md:py-1.5 rounded-lg text-sm md:text-xs font-medium transition-all duration-300 ease-in-out ${rightPanelTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
+                                            aria-label={`${tab} Tab`}
+                                        >
+                                            {tab}
+                                            {rightPanelTab === tab && (
+                                                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
                                             )}
-                                        </>
-                                    )}
-                            </div>
-                            </div>
-                            {/* Right panel with reduced spacing */}
-                            <div className={`w-full md:w-2/5 flex flex-col shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30 border-gray-700' : 'bg-white/50 border-gray-300'}`}>
-                                <div className="flex flex-col h-full min-h-0" style={{ flex: 1 }}>
-                                {rightPanelTab === 'Video' && embedUrl && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            {/* Sticky Header */}
-                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {/* Right Panel Content */}
+                                <div className="flex-1 min-h-0 overflow-hidden">
+                                    {rightPanelTab === 'Video' && embedUrl && (
+                                        <div className="flex flex-col h-full">
+                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-3 px-4 rounded-t-lg"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
+                                                <span className="text-lg md:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
                                             </div>
-                                            {/* Scrollable Content */}
-                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar">
                                                 <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                             </div>
                                         </div>
-                                )}
-                                {rightPanelTab === 'Quiz' && qnaText && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            {/* Sticky Header */}
-                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
+                                    )}
+
+                                    {rightPanelTab === 'Quiz' && qnaText && (
+                                        <div className="flex flex-col h-full">
+                                            <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-3 px-4 rounded-t-lg"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
+                                                <span className="text-lg md:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
                                                 <button
-                                                    className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
+                                                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}`}
                                                     onClick={() => handleRefresh('Quiz')}
                                                     title="Refresh Quiz"
                                                     aria-label="Refresh Quiz"
                                                 >
                                                     🔄
                                                 </button>
-                                                    </div>
-                                            {/* Scrollable Content */}
+                                            </div>
                                             <div
                                                 id="right-quiz-content"
                                                 ref={quizContainerRef}
-                                                className="flex-1 overflow-y-auto custom-scrollbar"
-                                                style={{ minHeight: 0, maxHeight: '60vh' }}
+                                                className="flex-1 overflow-y-auto p-4 custom-scrollbar"
                                             >
                                                 <QuizPanel qnaText={qnaText} />
-                                                </div>
-                                    </div>
-                                )}
-                                {rightPanelTab === 'Chat' && (
-                                        <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
-                                            {/* Sticky Header */}
-                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
-                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
-                                                <span className="text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
-                                            </div>
-                                            {/* Scrollable Content */}
-                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
-                                    <ChatPanel
-                                        theme={theme}
-                                        chatInput={chatInput}
-                                        setChatInput={setChatInput}
-                                        handleChatSubmit={handleChatSubmit}
-                                        showDropdown={showDropdown}
-                                        setShowDropdown={setShowDropdown}
-                                        suggestedData={suggestedData}
-                                        inputRef={inputRef}
-                                        chatContainerRef={chatContainerRef}
-                                        chatHistory={chatHistory}
-                                        chatLoading={chatLoading}
-                                    />
                                             </div>
                                         </div>
+                                    )}
+
+                                    {rightPanelTab === 'Chat' && (
+                                        <div className="flex flex-col h-full">
+                                            <div className="sticky top-0 z-10 flex items-center bg-opacity-80 backdrop-blur-md py-3 px-4 rounded-t-lg"
+                                                style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
+                                                <span className="text-lg md:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                                <ChatPanel
+                                                    theme={theme}
+                                                    chatInput={chatInput}
+                                                    setChatInput={setChatInput}
+                                                    handleChatSubmit={handleChatSubmit}
+                                                    showDropdown={showDropdown}
+                                                    setShowDropdown={setShowDropdown}
+                                                    suggestedData={suggestedData}
+                                                    inputRef={inputRef}
+                                                    chatContainerRef={chatContainerRef}
+                                                    chatHistory={chatHistory}
+                                                    chatLoading={chatLoading}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Right Panel Action Buttons */}
+                                {rightPanelTab === 'Quiz' && (
+                                    <div className="flex gap-3 items-center mt-4">
+                                        <button
+                                            onClick={() => {
+                                                if (!qnaText) return;
+                                                const content = qnaText;
+                                                const label = 'Quiz';
+                                                exportToPDF(content, label, transcript);
+                                            }}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={qnaText ? 'Download PDF' : 'No quiz to download'}
+                                            aria-label="Download as PDF"
+                                            disabled={!qnaText}
+                                        >
+                                            ⬇️ Download
+                                        </button>
+                                        <button
+                                            onClick={copyRightQuizContent}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                            title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
+                                            aria-label="Copy Quiz"
+                                            disabled={!qnaText}
+                                        >
+                                            📄 Copy
+                                        </button>
+                                        {copied && copiedPanel === 'right' && (
+                                            <span className="text-green-400 font-medium animate-fade-in">Copied!</span>
+                                        )}
+                                    </div>
                                 )}
                             </div>
-                                {/* Right panel tabs with smaller size */}
-                                <div className="flex flex-row items-center justify-between gap-2 mt-4 mb-3 w-full">
-                                    <div className="flex gap-2">
-                                        {getRightPanelTabs().map(tab => (
-                                            <button
-                                                key={tab}
-                                                onClick={() => setRightPanelTab(tab)}
-                                                className={`relative px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-300 ease-in-out ${rightPanelTab === tab ? (theme === 'dark' ? 'bg-green-600 text-white' : 'bg-green-500 text-white') : (theme === 'dark' ? 'bg-gray-800/50 text-green-300 hover:bg-gray-700/50' : 'bg-gray-200 text-green-600 hover:bg-gray-300')}`}
-                                                aria-label={`${tab} Tab`}
-                                                disabled={rightPanelTab === tab}
-                                                style={{ minWidth: 80 }}
-                                            >
-                                                {tab}
-                                                {rightPanelTab === tab && (
-                                                    <span className="absolute bottom-0 left-0 w-full h-0.5 bg-green-400 transform scale-x-100 transition-transform duration-300" />
-                                                )}
-                                            </button>
-                                        ))}
-                        </div>
-                                    {/* Quiz action buttons ONLY in right panel, always visible */}
-                                    {rightPanelTab === 'Quiz' && (
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    if (!qnaText) return;
-                                                    const content = qnaText;
-                                                    const label = 'Quiz';
-                                                    exportToPDF(content, label, transcript);
-                                                }}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={qnaText ? 'Download PDF' : 'No quiz to download'}
-                                                aria-label="Download as PDF"
-                                                disabled={!qnaText}
-                                            >
-                                                ⬇️
-                                            </button>
-                                            <button
-                                                onClick={copyRightQuizContent}
-                                                className={`px-3 py-1.5 rounded-lg text-xs font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'} ${!qnaText ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                                title={qnaText ? 'Copy Quiz' : 'No quiz to copy'}
-                                                aria-label="Copy Quiz"
-                                                disabled={!qnaText}
-                                            >
-                                                📄
-                                            </button>
-                                            {copied && copiedPanel === 'right' && (
-                                                <span className="ml-2 text-green-400 font-normal animate-fade-in self-center text-xs">Copied!</span>
-                                            )}
-                    </div>
-                                    )}
-                </div>
-            </div>
-        </div>
+                        )}
                     </div>
                 </div>
             </div>
