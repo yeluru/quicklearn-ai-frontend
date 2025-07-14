@@ -1130,7 +1130,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
                                         </div>
                                     )}
-                                    {mobileTab === 'Summary' && summary && (
+                                    {mobileTab === 'Summary' && (
                                         <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)', marginTop: 0, paddingTop: 0 }}>
@@ -1158,7 +1158,17 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             </div>
                                             <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}>
-                                                <MarkdownSummary summary={summary} theme={theme} />
+                                                {loading && loadingType === 'summary' ? (
+                                                    <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                        Generating summary...
+                                                    </div>
+                                                ) : summary ? (
+                                                    <MarkdownSummary summary={summary} theme={theme} />
+                                                ) : (
+                                                    <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                        No summary available yet.
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -1174,7 +1184,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             </div>
                                         </div>
                                     )}
-                                    {mobileTab === 'Quiz' && qnaText && (
+                                    {mobileTab === 'Quiz' && (
                                         <div className="flex flex-col flex-1 min-h-0">
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
@@ -1202,7 +1212,17 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             </div>
                                             <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
-                                                <QuizPanel qnaText={qnaText} />
+                                                {loading && loadingType === 'quiz' ? (
+                                                    <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                        Generating quiz...
+                                                    </div>
+                                                ) : qnaText ? (
+                                                    <QuizPanel qnaText={qnaText} />
+                                                ) : (
+                                                    <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                        No quiz available yet.
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -1286,7 +1306,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     </div>
                                                 </div>
                                             )}
-                                            {outputTab === 'Summary' && summary && (
+                                            {outputTab === 'Summary' && (
                                                 <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1320,11 +1340,21 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         ref={summaryContainerRef}
                                                         style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}
                                                     >
-                                                        <MarkdownSummary summary={summary} theme={theme} />
+                                                        {loading && loadingType === 'summary' ? (
+                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                Generating summary...
+                                                            </div>
+                                                        ) : summary ? (
+                                                            <MarkdownSummary summary={summary} theme={theme} />
+                                                        ) : (
+                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                No summary available yet.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
-                                            {outputTab === 'Quiz' && qnaText && (
+                                            {outputTab === 'Quiz' && (
                                                 <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1359,7 +1389,17 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         className="flex-1 overflow-y-auto custom-scrollbar"
                                                         style={{ minHeight: 0, maxHeight: '60vh' }}
                                                     >
-                                                        <QuizPanel qnaText={qnaText} />
+                                                        {loading && loadingType === 'quiz' ? (
+                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                Generating quiz...
+                                                            </div>
+                                                        ) : qnaText ? (
+                                                            <QuizPanel qnaText={qnaText} />
+                                                        ) : (
+                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                No quiz available yet.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
@@ -1490,7 +1530,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     </div>
                                                 </div>
                                             )}
-                                            {rightPanelTab === 'Quiz' && qnaText && (
+                                            {rightPanelTab === 'Quiz' && (
                                                 <div className="flex flex-col h-full" style={{ minHeight: 0, flex: 1 }}>
                                                     {/* Sticky Header */}
                                                     <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
@@ -1525,7 +1565,17 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         className="flex-1 overflow-y-auto custom-scrollbar"
                                                         style={{ minHeight: 0, maxHeight: '60vh' }}
                                                     >
-                                                        <QuizPanel qnaText={qnaText} />
+                                                        {loading && loadingType === 'quiz' ? (
+                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                Generating quiz...
+                                                            </div>
+                                                        ) : qnaText ? (
+                                                            <QuizPanel qnaText={qnaText} />
+                                                        ) : (
+                                                            <div className={`flex justify-center items-center h-full text-base sm:text-xs ${theme === 'dark' ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                                No quiz available yet.
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
