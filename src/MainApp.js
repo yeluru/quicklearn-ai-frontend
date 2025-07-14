@@ -998,11 +998,22 @@ export default function MainApp({ theme, toggleTheme }) {
                 </button>
                 <div className="flex flex-col h-screen">
                     <div className="w-full px-3 pt-2">
-                        <div className="flex flex-col items-start">
+                        <div className="flex flex-row items-center gap-2">
                             <h1 className={`text-2xl font-extrabold ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'} tracking-tight`}>VibeKnowing</h1>
-                            <span className={`text-base sm:text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
-                            <br />
+                            {loading && (
+                                <span className="ml-2 flex items-center">
+                                    <span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" />
+                                    <button
+                                        onClick={handleCancel}
+                                        className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+                                        aria-label="Cancel loading"
+                                        title="Cancel loading"
+                                    >C</button>
+                                </span>
+                            )}
                         </div>
+                        <span className={`text-base sm:text-xs ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'} font-medium`}>Your AI-powered knowledge companion</span>
+                        <br />
                         <div className={`shadow-xl rounded-xl p-4 glassmorphism ${theme === 'dark' ? 'bg-gray-800/30' : 'bg-white/50'}`}>
                             <div className="flex gap-2 mb-4 relative">
                                 {INPUT_TABS.map(tab => (
