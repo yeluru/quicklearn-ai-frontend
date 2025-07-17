@@ -574,10 +574,6 @@ export default function MainApp({ theme, toggleTheme }) {
     };
 
     const streamOutput = useCallback(async (type, force = false) => {
-        // Abort any previous stream before starting a new one
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort();
-        }
         if (!transcript) return;
         const url = type === 'summary' ? '/summary/summarize-stream' : '/summary/qna-stream';
         const setter = type === 'summary' ? setSummary : setQnaText;
