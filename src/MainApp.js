@@ -982,6 +982,7 @@ export default function MainApp({ theme, toggleTheme }) {
             setRightPanelTab('Chat');
             handleWebsiteScrape();
         }
+        if (isMobile) setMobileTab('Transcript');
     };
 
     // Adjust tab rendering logic for output tabs
@@ -1162,6 +1163,26 @@ export default function MainApp({ theme, toggleTheme }) {
                                         <MarkdownSummary summary={summary} theme={theme} />
                                                 )}
                                             </div>
+                                            <div className="flex gap-2 ml-auto">
+  <button
+    className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
+    onClick={() => streamOutput('summary', true)}
+    title="Refresh Summary"
+    aria-label="Refresh Summary"
+  >🔄</button>
+  <button
+    onClick={() => exportToPDF(summary, 'Summary', transcript)}
+    className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
+    title="Download PDF"
+    aria-label="Download as PDF"
+  >⬇️</button>
+  <button
+    onClick={copyRenderedContent}
+    className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
+    title="Copy content"
+    aria-label="Copy content"
+  >📄</button>
+</div>
                                     </div>
                                 )}
                                     {mobileTab === 'Video' && embedUrl && (
