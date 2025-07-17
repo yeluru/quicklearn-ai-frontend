@@ -600,17 +600,35 @@ export default function MainApp({ theme, toggleTheme }) {
             const decoder = new TextDecoder('utf-8');
             let done = false;
             let content = '';
+            let buffer = '';
             while (!done) {
                 const { value, done: isDone } = await reader.read();
                 if (value) {
-                    const text = decoder.decode(value);
-                    content += text;
-                    setter(prev => prev + text);
+                    buffer += decoder.decode(value);
+                    let lines = buffer.split('\n');
+                    // Keep the last partial line in buffer
+                    buffer = lines.pop();
+                    for (const line of lines) {
+                        if (!line.trim()) continue;
+                        try {
+                            const obj = JSON.parse(line);
+                            if (obj.type === 'chunk' && obj.content) {
+                                setter(prev => prev + obj.content);
+                                content += obj.content;
+                            }
+                            // Optionally handle obj.type === 'done'
+                        } catch (e) {
+                            // Ignore parse errors for incomplete lines
+                        }
+                    }
                 }
                 done = isDone;
             }
             if (type === 'summary') {
                 setSummary(content);
+            }
+            if (type === 'quiz') {
+                setQnaText(content);
             }
             console.log(`${type} generation completed:`, { contentLength: content.length });
         } catch (err) {
