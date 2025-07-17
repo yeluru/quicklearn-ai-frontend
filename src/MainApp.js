@@ -1207,7 +1207,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                             <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                 style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                                {loading && loadingType === 'quiz' && (
+                                                {loading && loadingType === 'qna' && (
                                                     <span className="ml-2 flex items-center">
                                                         <span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" />
                                                         <button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button>
@@ -1397,7 +1397,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 <div className="sticky top-0 z-10 flex items-center justify-between bg-opacity-80 backdrop-blur-md py-2 px-2 rounded-t-xl"
                                                     style={{ background: theme === 'dark' ? 'rgba(36,18,60,0.85)' : 'rgba(255,255,255,0.85)' }}>
                                                     <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Quiz</span>
-                                                    {loading && loadingType === 'quiz' && (
+                                                    {loading && loadingType === 'qna' && (
                                                         <span className="ml-2 flex items-center">
                                                             <span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" />
                                                             <button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button>
