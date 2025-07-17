@@ -1089,10 +1089,6 @@ video {
   --tw-prose-td-borders: var(--tw-prose-invert-td-borders);
 }
 
-.visible {
-  visibility: visible;
-}
-
 .static {
   position: static;
 }
@@ -1134,6 +1130,10 @@ video {
   right: 1rem;
 }
 
+.right-6 {
+  right: 1.5rem;
+}
+
 .top-0 {
   top: 0px;
 }
@@ -1156,6 +1156,11 @@ video {
 
 .z-50 {
   z-index: 50;
+}
+
+.mx-0\.5 {
+  margin-left: 0.125rem;
+  margin-right: 0.125rem;
 }
 
 .mx-auto {
@@ -1428,6 +1433,10 @@ video {
   flex-wrap: wrap;
 }
 
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
 .items-start {
   align-items: flex-start;
 }
@@ -1442,6 +1451,10 @@ video {
 
 .justify-between {
   justify-content: space-between;
+}
+
+.gap-0 {
+  gap: 0px;
 }
 
 .gap-1 {
@@ -1480,10 +1493,6 @@ video {
   margin-bottom: calc(2rem * var(--tw-space-y-reverse));
 }
 
-.self-center {
-  align-self: center;
-}
-
 .overflow-hidden {
   overflow: hidden;
 }
@@ -1492,8 +1501,16 @@ video {
   overflow: visible;
 }
 
+.overflow-x-auto {
+  overflow-x: auto;
+}
+
 .overflow-y-auto {
   overflow-y: auto;
+}
+
+.whitespace-nowrap {
+  white-space: nowrap;
 }
 
 .whitespace-pre-wrap {
@@ -1678,10 +1695,6 @@ video {
 
 .bg-white\/70 {
   background-color: rgb(255 255 255 / 0.7);
-}
-
-.bg-opacity-50 {
-  --tw-bg-opacity: 0.5;
 }
 
 .bg-opacity-80 {
@@ -1941,11 +1954,6 @@ video {
 .text-green-300 {
   --tw-text-opacity: 1;
   color: rgb(134 239 172 / var(--tw-text-opacity, 1));
-}
-
-.text-green-400 {
-  --tw-text-opacity: 1;
-  color: rgb(74 222 128 / var(--tw-text-opacity, 1));
 }
 
 .text-green-600 {
@@ -2259,11 +2267,19 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   font-weight: 800;
   letter-spacing: -0.01em;
+  font-size: 1.5rem;
+  /* Unify heading size */
 }
 
 button, .btn {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
+  font-size: 1rem;
+  /* Unify button size */
+}
+
+body, html, .font-inter {
+  font-size: 1rem;
 }
 
 .card-title, .topic-title {
@@ -2318,6 +2334,36 @@ button, .btn {
 
   .responsive-grid {
     gap: 1rem;
+  }
+}
+
+/* Remove font size reduction for mobile */
+
+@media (max-width: 900px) {
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.5rem;
+  }
+
+  button, .btn {
+    font-size: 1rem;
+  }
+
+  body, html, .font-inter {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 600px) {
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.5rem;
+  }
+
+  button, .btn {
+    font-size: 1rem;
+  }
+
+  body, html, .font-inter {
+    font-size: 1rem;
   }
 }
 
@@ -2465,11 +2511,6 @@ button, .btn {
   .sm\:text-base {
     font-size: 1rem;
     line-height: 1.5rem;
-  }
-
-  .sm\:text-sm {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
   }
 
   .sm\:text-xs {

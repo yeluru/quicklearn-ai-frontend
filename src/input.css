@@ -161,10 +161,15 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   font-weight: 800;
   letter-spacing: -0.01em;
+  font-size: 1.5rem; /* Unify heading size */
 }
 button, .btn {
   font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
   font-weight: 700;
+  font-size: 1rem; /* Unify button size */
+}
+body, html, .font-inter {
+  font-size: 1rem;
 }
 .card-title, .topic-title {
   font-size: 1.5rem;
@@ -211,5 +216,29 @@ button, .btn {
   }
   .responsive-grid {
     gap: 1rem;
+  }
+}
+
+/* Remove font size reduction for mobile */
+@media (max-width: 900px) {
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.5rem;
+  }
+  button, .btn {
+    font-size: 1rem;
+  }
+  body, html, .font-inter {
+    font-size: 1rem;
+  }
+}
+@media (max-width: 600px) {
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.5rem;
+  }
+  button, .btn {
+    font-size: 1rem;
+  }
+  body, html, .font-inter {
+    font-size: 1rem;
   }
 }

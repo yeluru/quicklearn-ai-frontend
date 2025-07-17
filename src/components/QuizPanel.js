@@ -126,12 +126,12 @@ function QuizPanel({ qnaText }) {
                 return (
                     <div key={idx} className="mb-1 flex flex-col w-full animate-fade-in">
                         {question && (
-                            <div className="px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full text-base sm:text-xs font-extrabold bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300" style={{ fontWeight: 800 }}>
+                            <div className="px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full font-extrabold bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300" style={{ fontWeight: 800 }}>
                                 {renderMarkdown(question)}
                             </div>
                         )}
                         {answer && (
-                            <div className="px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full text-base sm:text-xs bg-gray-200/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100" style={{ marginTop: question ? '-1px' : undefined }}>
+                            <div className="px-3 py-1.5 rounded-b-lg rounded-tl-lg w-full max-w-full bg-gray-200/50 dark:bg-gray-800/50 text-gray-900 dark:text-gray-100" style={{ marginTop: question ? '-1px' : undefined }}>
                                 {renderMarkdown(answer)}
                             </div>
                         )}

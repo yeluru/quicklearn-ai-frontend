@@ -43,7 +43,7 @@ export default function ChatPanel({
             <div className={`relative flex-shrink-0 ${isMobile ? 'overflow-visible' : ''}`}>
                 <div className="flex gap-2 mb-2">
                     <input
-                        className={`px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 text-base sm:text-xs w-full` + (theme === 'dark' ? ' bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : ' bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500')}
+                        className={`px-3 py-1.5 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400 w-full` + (theme === 'dark' ? ' bg-gray-800/50 border-gray-700 text-gray-100 placeholder-gray-400' : ' bg-white/50 border-gray-300 text-gray-900 placeholder-gray-500')}
                         placeholder="💡 Ask anything or choose from the list below ..."
                         value={chatInput}
                         ref={inputRef}
@@ -66,7 +66,7 @@ export default function ChatPanel({
                     />
                     <button
                         disabled={!chatInput.trim()}
-                        className={`px-3 py-1.5 rounded-lg text-base sm:text-xs font-normal transition-all duration-200 ${chatInput.trim()
+                        className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${chatInput.trim()
                             ? (theme === 'dark' ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-purple-500 text-white hover:bg-purple-600')
                             : (theme === 'dark' ? 'bg-gray-600 text-gray-400 cursor-not-allowed' : 'bg-gray-400 text-gray-600 cursor-not-allowed')}`}
                         onClick={handleChatSubmit}
@@ -138,7 +138,7 @@ export default function ChatPanel({
                                 </div>
                             )}
                             {pair.botMsg && (
-                                <div className={`text-left px-3 py-1.5 rounded-lg inline-block max-w-full prose text-base sm:text-xs ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
+                                <div className={`text-left px-3 py-1.5 rounded-lg inline-block max-w-full prose ${theme === 'dark' ? 'text-gray-100 bg-gray-800/50' : 'text-gray-900 bg-gray-200/50'}`}>
                                     <ReactMarkdown remarkPlugins={[remarkMath]} rehypePlugins={[rehypeKatex]}
                                         components={{
                                             strong: ({ node, children, ...props }) =>

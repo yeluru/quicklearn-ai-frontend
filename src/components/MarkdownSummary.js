@@ -43,35 +43,35 @@ export default function MarkdownSummary({ summary, theme }) {
   const mathWrappedSummary = autoWrapMath(normalizedSummary);
 
   return (
-    <div id="summary-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'} text-base sm:text-sm`}>
+    <div id="summary-content" className={`prose max-w-none ${theme === 'dark' ? 'prose-invert dark:prose-dark text-gray-100' : 'text-gray-900'}`}>
       <ReactMarkdown
         remarkPlugins={[remarkMath]}
         rehypePlugins={[rehypeKatex]}
         components={{
           h1: ({ children, ...props }) =>
-            <h1 className={`text-base sm:text-xs font-extrabold mb-2 px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300`} style={{ fontWeight: 800 }} {...props}>{children}</h1>,
+            <h1 className={`font-extrabold mb-2 px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300`} style={{ fontWeight: 800 }} {...props}>{children}</h1>,
           h2: ({ children, ...props }) =>
-            <h2 className={`text-base sm:text-xs font-extrabold mb-2 px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300`} style={{ fontWeight: 800 }} {...props}>{children}</h2>,
+            <h2 className={`font-extrabold mb-2 px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300`} style={{ fontWeight: 800 }} {...props}>{children}</h2>,
           h3: ({ children, ...props }) =>
-            <h3 className={`text-base sm:text-xs font-extrabold mb-2 px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300`} style={{ fontWeight: 800 }} {...props}>{children}</h3>,
+            <h3 className={`font-extrabold mb-2 px-3 py-1.5 rounded-t-lg rounded-br-lg w-full max-w-full bg-purple-200/50 dark:bg-purple-900/50 text-purple-600 dark:text-purple-300`} style={{ fontWeight: 800 }} {...props}>{children}</h3>,
           p: ({ children, ...props }) =>
-            <p className={`mb-4 leading-relaxed text-base sm:text-xs ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</p>,
+            <p className={`mb-4 leading-relaxed ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</p>,
           ul: ({ children, ...props }) =>
-            <ul className={`list-disc pl-6 mb-4 text-base sm:text-xs ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ul>,
+            <ul className={`list-disc pl-6 mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ul>,
           ol: ({ children, ...props }) =>
-            <ol className={`list-decimal pl-6 mb-4 text-base sm:text-xs ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ol>,
+            <ol className={`list-decimal pl-6 mb-4 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</ol>,
           li: ({ children, ...props }) =>
-            <li className={`mb-2 text-base sm:text-xs ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</li>,
+            <li className={`mb-2 ${theme === 'dark' ? 'text-gray-200' : 'text-gray-800'}`} {...props}>{children}</li>,
           code: ({ inline, children, ...props }) =>
             inline ? (
-              <code className={`bg-gray-800 text-purple-300 px-1 rounded text-base sm:text-xs ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</code>
+              <code className={`bg-gray-800 text-purple-300 px-1 rounded ${theme === 'dark' ? 'text-purple-300' : 'text-purple-600'}`} {...props}>{children}</code>
             ) : (
-              <pre className={`bg-gray-800 border border-gray-700 p-4 rounded-lg mb-4 text-base sm:text-xs ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>
+              <pre className={`bg-gray-800 border border-gray-700 p-4 rounded-lg mb-4 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} {...props}>
                 <code>{children}</code>
               </pre>
             ),
           strong: ({ children, ...props }) =>
-            <strong className={`text-base sm:text-xs ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} font-semibold`} {...props}>{children}</strong>,
+            <strong className={`${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'} font-semibold`} {...props}>{children}</strong>,
         }}
       >
         {mathWrappedSummary}
