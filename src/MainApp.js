@@ -1163,7 +1163,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <button
                                                         className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
                                                         onClick={() => streamOutput('summary', true)}
-                                                        title="Refresh Summary"
                                                         aria-label="Refresh Summary"
                                                     >🔄</button>
                                                     <button
@@ -1220,7 +1219,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     <button
                                                         className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
                                                         onClick={() => streamOutput('qna', true)}
-                                                        title="Refresh Quiz"
                                                         aria-label="Refresh Quiz"
                                                     >🔄</button>
                                                     <button
@@ -1329,7 +1327,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                                         <button
                                                             className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
                                                             onClick={() => streamOutput('summary', true)}
-                                                            title="Refresh Summary"
                                                             aria-label="Refresh Summary"
                                                         >🔄</button>
                                                         <button
@@ -1410,7 +1407,6 @@ export default function MainApp({ theme, toggleTheme }) {
                                 <button
                                                             className={`px-3 py-1.5 rounded-lg font-normal transition-all duration-200 ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 text-white' : 'bg-purple-500 hover:bg-purple-600 text-white'}${loading ? ' opacity-50 cursor-not-allowed' : ''}`}
                                                             onClick={() => streamOutput('qna', true)}
-                                                            title="Refresh Quiz"
                                                             aria-label="Refresh Quiz"
                                                         >🔄</button>
                                 <button
