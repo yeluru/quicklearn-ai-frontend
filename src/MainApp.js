@@ -1142,7 +1142,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Transcript</span>
                                                 {loading && loadingType === 'transcript' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                             </div>
-                                            <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
+                                            <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[80vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
                             </div>
                         )}
                                     {mobileTab === 'Summary' && (
@@ -1183,7 +1183,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     The Summary will load here once processed.
                                                 </div>
                                             )}
-                                            <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}>
+                                            <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '80vh' }}>
                                                 {summary && (
                                         <MarkdownSummary summary={summary} theme={theme} />
                                                 )}
@@ -1197,7 +1197,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Video</span>
                                                 {loading && loadingType === 'videoSummary' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                             </div>
-                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '80vh' }}>
                                                 <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                             </div>
                                         </div>
@@ -1241,7 +1241,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 </div>
                                             )}
                                             {/* Content here */}
-                                            <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                            <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '80vh' }}>
                                                 {qnaText && (
                                                     <QuizPanel qnaText={qnaText} />
                                                 )}
@@ -1255,7 +1255,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                 <span className="text-lg sm:text-base font-bold text-purple-700 dark:text-purple-200 tracking-tight">Chat</span>
                                                 {loading && loadingType === 'chat' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                             </div>
-                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '80vh' }}>
                                                 <ChatPanel
                                                     theme={theme}
                                                     chatInput={chatInput}
@@ -1308,7 +1308,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {loading && loadingType === 'transcript' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                 </div>
                                                 {/* Content here */}
-                                                <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[60vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
+                                                <div id="transcript-content" ref={transcriptContainerRef} className={`whitespace-pre-wrap text-sm custom-scrollbar overflow-y-auto max-h-[80vh] pr-2 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`}>{transcriptSegments.length > 0 ? (<div>{transcriptSegments.map((seg, idx) => (<div key={idx} style={{ marginBottom: 6 }}><span style={{ color: 'blue', cursor: 'pointer', marginRight: 6, fontSize: '0.75rem' }} onClick={() => seekTo(seg.start)} onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') seekTo(seg.start); }} role="button" tabIndex={0} aria-label={`Jump to ${formatTime(seg.start)}`}>[{formatTime(seg.start)}]</span>{seg.text}</div>))}</div>) : (<div className={`whitespace-pre-wrap text-sm ${theme === 'dark' ? 'text-gray-100' : 'text-gray-900'}`} style={{ width: '100%' }}>{transcript || 'Your transcript will appear here once processed.'}</div>)}</div>
                                             </div>
                                         )}
                                         {outputTab === 'Summary' && (
@@ -1350,7 +1350,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     </div>
                                                 )}
                                                 {/* Content here */}
-                                                <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '60vh' }}>
+                                                <div id="summary-content" ref={summaryContainerRef} style={{ flex: 1, minHeight: 0, overflowY: 'auto', maxHeight: '80vh' }}>
                                                     {summary && (
                                                         <MarkdownSummary summary={summary} theme={theme} />
                                             )}
@@ -1387,7 +1387,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {loading && loadingType === 'videoSummary' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                 </div>
                                                 {/* Content here */}
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                                <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '80vh' }}>
                                                     <VideoPanel key={`video-${embedUrl}`} theme={theme} embedUrl={embedUrl} videoSummary={videoSummary} />
                                                 </div>
                                             </div>
@@ -1431,7 +1431,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     </div>
                                                 )}
                                                 {/* Content here */}
-                                                <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                                <div id="right-quiz-content" ref={quizContainerRef} className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '80vh' }}>
                                                     {qnaText && (
                                                         <QuizPanel qnaText={qnaText} />
                                                     )}
@@ -1446,7 +1446,7 @@ export default function MainApp({ theme, toggleTheme }) {
                                                     {loading && loadingType === 'chat' && <span className="ml-2 flex items-center"><span className="w-5 h-5 border-2 border-purple-400 border-t-transparent rounded-full animate-spin inline-block mr-2" /><button onClick={handleCancel} className="ml-1 px-2 py-1 rounded bg-red-500 text-white text-xs font-bold hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400" aria-label="Cancel loading" title="Cancel loading">Cancel</button></span>}
                                                 </div>
                                                 {/* Content here */}
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '60vh' }}>
+                                                <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ minHeight: 0, maxHeight: '80vh' }}>
                                     <ChatPanel
                                         theme={theme}
                                         chatInput={chatInput}
