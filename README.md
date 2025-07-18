@@ -197,7 +197,6 @@ Watches and compiles Tailwind CSS
 #### Interactive Features
 - **Download**: Save content as PDF
 - **Copy**: Copy formatted content to clipboard
-- **Refresh**: Regenerate AI outputs
 - **Chat**: Ask follow-up questions
 - **Suggested Questions**: AI-generated prompts
 
